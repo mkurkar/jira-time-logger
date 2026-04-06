@@ -1,0 +1,132 @@
+'use client';
+
+import { useState, useCallback, useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import type { JiraUser } from '@/src/types/jira';
+import { getUserColor } from '@/lib/calendar-constants';
+
+const STORAGE_KEY = 'calendar-selected-users';
+
+export interface TeamMember extends JiraUser {
+  color: string;
+}
+
+interface UseTeamMembersReturn {
+  teamMembers: TeamMember[];
+  selectedAccountIds: Set<string>;
+  isLoading: boolean;
+  error: string | null;
+  toggleUser: (accountId: string) => void;
+  selectAll: () => void;
+  deselectAll: () => void;
+  isSelected: (accountId: string) => boolean;
+  fetchTeamMembers: (projectKey: string) => void;
+}
+
+async function fetchTeamMembersApi(projectKey: string): Promise<TeamMember[]> {
+  const res = await fetch(
+    `/api/team-members?project=${encodeURIComponent(projectKey)}`,
+  );
+  if (!res.ok) {
+    const data = await res.json().catch(() => ({}));
+    throw new Error(data.error || `Failed (${res.status})`);
+  }
+  const data = await res.json();
+  return (data.users as JiraUser[]).map((u) => ({
+    ...u,
+    color: getUserColor(u.accountId),
+  }));
+}
+
+export function useTeamMembers(): UseTeamMembersReturn {
+  const [projectKey, setProjectKey] = useState<string | null>(null);
+  const [selectedAccountIds, setSelectedAccountIds] = useState<Set<string>>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        try {
+          return new Set(JSON.parse(saved) as string[]);
+        } catch { /* ignore */ }
+      }
+    }
+    return new Set();
+  });
+
+  const { data: teamMembers = [], isLoading, error } = useQuery({
+    queryKey: ['team-members', projectKey],
+    queryFn: () => fetchTeamMembersApi(projectKey!),
+    enabled: !!projectKey,
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Persist selected account IDs to localStorage
+  useEffect(() => {
+    localStorage.setItem(
+      STORAGE_KEY,
+      JSON.stringify(Array.from(selectedAccountIds)),
+    );
+  }, [selectedAccountIds]);
+
+  // When team members load, sync selection state
+  useEffect(() => {
+    if (teamMembers.length === 0) return;
+
+    setSelectedAccountIds((prev) => {
+      if (prev.size === 0) {
+        return new Set(teamMembers.map((m) => m.accountId));
+      }
+      // Keep only IDs that are still valid team members
+      const validIds = new Set(teamMembers.map((m) => m.accountId));
+      const filtered = new Set(
+        Array.from(prev).filter((id) => validIds.has(id)),
+      );
+      return filtered.size > 0 ? filtered : new Set(teamMembers.map((m) => m.accountId));
+    });
+  }, [teamMembers]);
+
+  // Public method that triggers the query by setting projectKey
+  const fetchTeamMembers = useCallback((key: string) => {
+    setProjectKey(key);
+  }, []);
+
+  const toggleUser = useCallback((accountId: string) => {
+    setSelectedAccountIds((prev) => {
+      const next = new Set(prev);
+      if (next.has(accountId)) {
+        if (next.size > 1) {
+          next.delete(accountId);
+        }
+      } else {
+        next.add(accountId);
+      }
+      return next;
+    });
+  }, []);
+
+  const selectAll = useCallback(() => {
+    setSelectedAccountIds(new Set(teamMembers.map((m) => m.accountId)));
+  }, [teamMembers]);
+
+  const deselectAll = useCallback(() => {
+    if (teamMembers.length > 0) {
+      setSelectedAccountIds(new Set([teamMembers[0].accountId]));
+    }
+  }, [teamMembers]);
+
+  const isSelected = useCallback(
+    (accountId: string) => selectedAccountIds.has(accountId),
+    [selectedAccountIds],
+  );
+
+  return {
+    teamMembers,
+    selectedAccountIds,
+    isLoading,
+    error: error ? (error as Error).message : null,
+    toggleUser,
+    selectAll,
+    deselectAll,
+    isSelected,
+    fetchTeamMembers,
+  };
+}
