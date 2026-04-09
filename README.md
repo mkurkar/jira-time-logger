@@ -15,8 +15,8 @@ A modern timesheet and calendar application for logging work hours to Jira.
 
 ## Tech Stack
 
-- **Next.js 14** (App Router)
-- **React 18** with TypeScript
+- **Next.js 16** (App Router)
+- **React 19** with TypeScript
 - **TailwindCSS** for styling
 - **React Query** for server state management
 - **Jira REST API** integration
