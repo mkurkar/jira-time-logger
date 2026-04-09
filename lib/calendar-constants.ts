@@ -15,7 +15,7 @@ export const MIN_EVENT_MINUTES = 15;
 /** Default calendar settings */
 export const DEFAULT_SETTINGS: CalendarSettings = {
   snapMinutes: 15,
-  startHour: 6,
+  startHour: 0,
   endHour: 22,
   slotMinutes: 15,
 };
