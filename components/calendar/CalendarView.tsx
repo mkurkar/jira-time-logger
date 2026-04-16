@@ -78,6 +78,7 @@ export default function CalendarView({
           if (parsed._version === SETTINGS_VERSION) {
             return { ...DEFAULT_SETTINGS, ...parsed };
           }
+          return { ...DEFAULT_SETTINGS, ...parsed, startHour: DEFAULT_SETTINGS.startHour, _version: SETTINGS_VERSION };
         } catch { /* ignore */ }
       }
     }
@@ -178,7 +179,29 @@ export default function CalendarView({
     };
   }, [nav.visibleDays]);
 
-  const issueKeys = useMemo(() => issues.map(i => i.key), [issues]);
+  // Fetch issues scoped to visible date range
+  const { data: ownIssues } = useQuery({
+    queryKey: ['calendar-issues-scoped', projectKey, dateRange.startDate, dateRange.endDate],
+    queryFn: async () => {
+      if (!dateRange.startDate || !dateRange.endDate) return [];
+      let res: Response;
+      if (projectKey) {
+        const jql = `project = "${projectKey}" AND worklogDate >= "${dateRange.startDate}" AND worklogDate <= "${dateRange.endDate}" ORDER BY updated DESC`;
+        res = await fetch(`/api/issues?jql=${encodeURIComponent(jql)}&maxResults=50`);
+      } else {
+        res = await fetch(`/api/my-issues?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`);
+      }
+      if (!res.ok) return issues; // fall back to parent-provided issues
+      const data = await res.json();
+      return (data.issues || []) as JiraIssue[];
+    },
+    enabled: dateRange.startDate !== '' && dateRange.endDate !== '',
+    staleTime: 2 * 60 * 1000,
+    placeholderData: issues,
+  });
+
+  const effectiveIssues = ownIssues ?? issues;
+  const issueKeys = useMemo(() => effectiveIssues.map(i => i.key), [effectiveIssues]);
 
   const multiUserWorklogs = useMultiUserWorklogs({
     issueKeys,
@@ -199,7 +222,7 @@ export default function CalendarView({
 
   const events = useCalendarEvents({
     worklogs: effectiveWorklogs,
-    issues,
+    issues: effectiveIssues,
     visibleDays: nav.visibleDays,
     minutesToTop: grid.minutesToTop,
     minutesToPixels: grid.minutesToPixels,
@@ -694,7 +717,7 @@ export default function CalendarView({
 
         {/* T014: Issue sidebar */}
         <IssueSidebar
-          issues={issues}
+          issues={effectiveIssues}
           recentIssueKeys={recentIssueKeys}
           isCollapsed={isSidebarCollapsed}
           onToggleCollapsed={() => setIsSidebarCollapsed(c => !c)}
@@ -772,7 +795,7 @@ export default function CalendarView({
 
       {/* Issue picker modal for slot selection */}
       <IssuePickerModal
-        issues={issues}
+        issues={effectiveIssues}
         isOpen={issuePickerState.isOpen}
         onClose={() => setIssuePickerState({ isOpen: false, startDate: null, timeSpentSeconds: 0 })}
         onSelect={handleIssueSelected}

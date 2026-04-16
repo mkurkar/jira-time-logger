@@ -22,7 +22,7 @@ export async function GET(request: NextRequest) {
     const config = loadConfig();
     const client = new JiraClient(config);
     const result = await client.searchIssues(jql, {
-      maxResults: maxResults ? parseInt(maxResults, 10) : 20,
+      maxResults: maxResults ? parseInt(maxResults, 10) : 50,
     });
     return NextResponse.json({
       issues: result.issues,

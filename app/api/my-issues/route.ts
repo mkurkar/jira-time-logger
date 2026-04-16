@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import { JiraClient } from '@/src/api/jira-client';
 import { loadConfig } from '@/src/config/env';
 import {
@@ -6,15 +6,23 @@ import {
   JiraRateLimitError,
 } from '@/src/errors/jira-errors';
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
     const config = loadConfig();
     const client = new JiraClient(config);
 
-    // Fetch issues assigned to or worked on by the current user
-    const jql =
-      '(assignee = currentUser() OR worklogAuthor = currentUser()) ORDER BY updated DESC';
-    const result = await client.searchIssues(jql, { maxResults: 30 });
+    const searchParams = request.nextUrl.searchParams;
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
+
+    // Scope to worklogs in date range if provided, otherwise fall back to recent
+    let jql: string;
+    if (startDate && endDate) {
+      jql = `(assignee = currentUser() OR worklogAuthor = currentUser()) AND worklogDate >= "${startDate}" AND worklogDate <= "${endDate}" ORDER BY updated DESC`;
+    } else {
+      jql = '(assignee = currentUser() OR worklogAuthor = currentUser()) ORDER BY updated DESC';
+    }
+    const result = await client.searchIssues(jql, { maxResults: 50 });
 
     return NextResponse.json({
       issues: result.issues,

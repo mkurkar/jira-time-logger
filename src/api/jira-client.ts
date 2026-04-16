@@ -62,6 +62,23 @@ export class JiraClient {
     return this.request<JiraSearchResult>(`/rest/api/3/search/jql?${params.toString()}`);
   }
 
+  /** Search all issues via JQL, auto-paginating through all pages. */
+  async searchAllIssues(jql: string, pageSize = 100): Promise<JiraSearchResult> {
+    const allIssues: JiraSearchResult['issues'] = [];
+    let nextPageToken: string | undefined;
+
+    do {
+      const result = await this.searchIssues(jql, {
+        maxResults: pageSize,
+        nextPageToken,
+      });
+      allIssues.push(...result.issues);
+      nextPageToken = result.isLast ? undefined : result.nextPageToken;
+    } while (nextPageToken);
+
+    return { issues: allIssues, isLast: true };
+  }
+
   /** Get a single issue by key. */
   async getIssue(issueKey: string): Promise<JiraIssue> {
     return this.request<JiraIssue>(`/rest/api/3/issue/${encodeURIComponent(issueKey)}`);

@@ -1,43 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
 import WeeklyGrid from '@/components/WeeklyGrid';
 import CalendarView from '@/components/calendar/CalendarView';
 import ProjectSelector from '@/components/ProjectSelector';
 import { useProjects } from '@/hooks/useProjects';
-import type { JiraIssue } from '@/src/types/jira';
 
 type ViewMode = 'grid' | 'calendar';
-
-async function fetchCalendarIssues(projectKey?: string): Promise<JiraIssue[]> {
-  let issuesRes: Response;
-  if (projectKey) {
-    const jql = `project = "${projectKey}" ORDER BY updated DESC`;
-    issuesRes = await fetch(`/api/issues?jql=${encodeURIComponent(jql)}&maxResults=50`);
-  } else {
-    issuesRes = await fetch('/api/my-issues');
-  }
-  if (!issuesRes.ok) throw new Error('Failed to fetch issues');
-  const issuesData = await issuesRes.json();
-  return issuesData.issues || [];
-}
 
 export default function Home() {
   const [activeView, setActiveView] = useState<ViewMode>('grid');
   const { projects, selectedProject, setSelectedProject, isLoading: isLoadingProjects } = useProjects();
-
-  // Calendar issues query — only enabled when calendar view is active
-  const {
-    data: issues = [],
-    isLoading: isLoadingCalendar,
-    refetch: refetchCalendarData,
-  } = useQuery({
-    queryKey: ['calendar-issues', selectedProject?.key ?? null],
-    queryFn: () => fetchCalendarIssues(selectedProject?.key),
-    enabled: activeView === 'calendar',
-    staleTime: 2 * 60 * 1000, // 2 minutes
-  });
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -91,17 +64,10 @@ export default function Home() {
         <WeeklyGrid projectKey={selectedProject?.key} />
       ) : (
         <div className="h-[calc(100vh-180px)]">
-          {isLoadingCalendar && issues.length === 0 ? (
-            <div className="flex items-center justify-center py-12">
-              <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full" />
-              <span className="ml-3 text-gray-500">Loading calendar data...</span>
-            </div>
-          ) : (
-            <CalendarView
-              issues={issues}
-              projectKey={selectedProject?.key}
-            />
-          )}
+          <CalendarView
+            issues={[]}
+            projectKey={selectedProject?.key}
+          />
         </div>
       )}
     </div>

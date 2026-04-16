@@ -28,58 +28,58 @@ export default function WeeklyGrid({ projectKey }: WeeklyGridProps) {
   const [showBulkEntry, setShowBulkEntry] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
-  // Load saved issues from localStorage AND auto-fetch user's issues on mount
+  // Load saved issues from localStorage
   useEffect(() => {
     const stored = loadSavedIssues();
     setSavedIssues(stored);
-
-    // Auto-fetch user's recent/assigned issues from Jira
-    (async () => {
-      try {
-        let res: Response;
-        if (projectKey) {
-          const jql = `project = "${projectKey}" ORDER BY updated DESC`;
-          res = await fetch(`/api/issues?jql=${encodeURIComponent(jql)}&maxResults=50`);
-        } else {
-          res = await fetch('/api/my-issues');
-        }
-        if (!res.ok) return;
-        const data = await res.json();
-        const autoIssues: JiraIssue[] = data.issues || [];
-
-        // Merge auto-loaded issues with saved ones (dedup by key)
-        const existingKeys = new Set(stored.map((s) => s.issueKey));
-        const newIssues = autoIssues.filter((issue) => !existingKeys.has(issue.key));
-
-        if (newIssues.length > 0) {
-          const merged = [...stored];
-          for (const issue of newIssues) {
-            merged.push({
-              issueKey: issue.key,
-              summary: issue.fields.summary,
-              addedAt: new Date().toISOString(),
-            });
-          }
-          setSavedIssues(merged);
-          // Don't persist auto-loaded issues to localStorage — they refresh from Jira each time
-        }
-      } catch (err) {
-        console.error('Auto-load issues failed:', err);
-      }
-    })();
-  }, [projectKey]);
+  }, []);
 
   // Update week range when weekStart changes
   useEffect(() => {
     setWeekRange(getWeekRange(weekStart));
   }, [weekStart]);
 
+  const startDate = formatDateISO(weekRange.start);
+  const endDate = formatDateISO(weekRange.end);
+
+  // Auto-fetch issues that have worklogs in the visible week
+  useEffect(() => {
+    (async () => {
+      try {
+        let res: Response;
+        if (projectKey) {
+          const jql = `project = "${projectKey}" AND worklogDate >= "${startDate}" AND worklogDate <= "${endDate}" ORDER BY updated DESC`;
+          res = await fetch(`/api/issues?jql=${encodeURIComponent(jql)}&maxResults=50`);
+        } else {
+          res = await fetch(`/api/my-issues?startDate=${startDate}&endDate=${endDate}`);
+        }
+        if (!res.ok) return;
+        const data = await res.json();
+        const autoIssues: JiraIssue[] = data.issues || [];
+
+        // Merge auto-loaded issues with saved ones (dedup by key)
+        setSavedIssues((prev) => {
+          const existingKeys = new Set(prev.map((s) => s.issueKey));
+          const newIssues = autoIssues.filter((issue) => !existingKeys.has(issue.key));
+          if (newIssues.length === 0) return prev;
+          return [
+            ...prev,
+            ...newIssues.map((issue) => ({
+              issueKey: issue.key,
+              summary: issue.fields.summary,
+              addedAt: new Date().toISOString(),
+            })),
+          ];
+        });
+      } catch (err) {
+        console.error('Auto-load issues failed:', err);
+      }
+    })();
+  }, [projectKey, startDate, endDate]);
+
   // Stable sorted issue keys for query key identity
   const issueKeys = savedIssues.map((s) => s.issueKey);
   const sortedIssueKeys = useMemo(() => [...issueKeys].sort(), [issueKeys.join(',')]);
-
-  const startDate = formatDateISO(weekRange.start);
-  const endDate = formatDateISO(weekRange.end);
 
   // Fetch issue details via React Query
   const { data: issuesData } = useQuery({
@@ -87,7 +87,7 @@ export default function WeeklyGrid({ projectKey }: WeeklyGridProps) {
     queryFn: async () => {
       if (issueKeys.length === 0) return [];
       const jql = `key in (${issueKeys.join(',')}) ORDER BY key ASC`;
-      const res = await fetch(`/api/issues?jql=${encodeURIComponent(jql)}&maxResults=50`);
+      const res = await fetch(`/api/issues?jql=${encodeURIComponent(jql)}&maxResults=${issueKeys.length}`);
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
         throw new Error(errData.error || `Failed to fetch issues (${res.status})`);
