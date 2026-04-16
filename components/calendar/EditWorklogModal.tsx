@@ -12,8 +12,20 @@ interface EditWorklogModalProps {
 }
 
 function toJiraDatetime(date: Date): string {
-  const iso = date.toISOString();
-  return iso.replace('Z', '+0000');
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const y = date.getFullYear();
+  const mo = pad(date.getMonth() + 1);
+  const d = pad(date.getDate());
+  const h = pad(date.getHours());
+  const mi = pad(date.getMinutes());
+  const s = pad(date.getSeconds());
+  const ms = String(date.getMilliseconds()).padStart(3, '0');
+  const tzOffset = -date.getTimezoneOffset();
+  const sign = tzOffset >= 0 ? '+' : '-';
+  const absOffset = Math.abs(tzOffset);
+  const tzH = pad(Math.floor(absOffset / 60));
+  const tzM = pad(absOffset % 60);
+  return `${y}-${mo}-${d}T${h}:${mi}:${s}.${ms}${sign}${tzH}${tzM}`;
 }
 
 export default function EditWorklogModal({ isOpen, calendarEvent, onClose, onSaved }: EditWorklogModalProps) {

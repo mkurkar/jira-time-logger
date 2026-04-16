@@ -27,10 +27,24 @@ import EditWorklogModal from './EditWorklogModal';
 import DropZoneOverlay from './DropZoneOverlay';
 import { useIssueDragDrop } from '@/hooks/useIssueDragDrop';
 
+const SETTINGS_VERSION = 2;
+
 // Helper: format Date to Jira datetime string
 function toJiraDatetime(date: Date): string {
-  const iso = date.toISOString(); // "2024-01-15T09:00:00.000Z"
-  return iso.replace('Z', '+0000');
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const y = date.getFullYear();
+  const mo = pad(date.getMonth() + 1);
+  const d = pad(date.getDate());
+  const h = pad(date.getHours());
+  const mi = pad(date.getMinutes());
+  const s = pad(date.getSeconds());
+  const ms = String(date.getMilliseconds()).padStart(3, '0');
+  const tzOffset = -date.getTimezoneOffset();
+  const sign = tzOffset >= 0 ? '+' : '-';
+  const absOffset = Math.abs(tzOffset);
+  const tzH = pad(Math.floor(absOffset / 60));
+  const tzM = pad(absOffset % 60);
+  return `${y}-${mo}-${d}T${h}:${mi}:${s}.${ms}${sign}${tzH}${tzM}`;
 }
 
 interface CalendarViewProps {
@@ -59,16 +73,21 @@ export default function CalendarView({
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('calendar-settings');
       if (saved) {
-        try { return JSON.parse(saved); } catch { /* ignore */ }
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed._version === SETTINGS_VERSION) {
+            return { ...DEFAULT_SETTINGS, ...parsed };
+          }
+        } catch { /* ignore */ }
       }
     }
-    return DEFAULT_SETTINGS;
+    return { ...DEFAULT_SETTINGS, _version: SETTINGS_VERSION };
   });
   const [showSettings, setShowSettings] = useState(false);
 
   // Persist settings to localStorage on change
   useEffect(() => {
-    localStorage.setItem('calendar-settings', JSON.stringify(settings));
+    localStorage.setItem('calendar-settings', JSON.stringify({ ...settings, _version: SETTINGS_VERSION }));
   }, [settings]);
 
   // T014: Error toast state

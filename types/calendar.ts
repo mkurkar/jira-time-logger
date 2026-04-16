@@ -40,7 +40,7 @@ export interface CalendarSlot {
 /** User-configurable calendar settings */
 export interface CalendarSettings {
   snapMinutes: 5 | 10 | 15 | 30 | 60;
-  startHour: number;             // 0-23 (default 6)
+  startHour: number;             // 0-23 (default 0)
   endHour: number;               // 1-24 (default 22)
   slotMinutes: 15 | 30 | 60;    // Visual slot interval
 }
