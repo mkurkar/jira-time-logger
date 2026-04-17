@@ -556,9 +556,9 @@ export default function CalendarView({
       </div>
 
       {/* T021: Daily totals row */}
-      <div className="flex" style={{ borderBottom: `1px solid ${token('color.border')}`, backgroundColor: token('color.background.neutral.subtle') }}>
+      <div className="flex" style={{ borderBottom: `2px solid ${token('color.border')}`, backgroundColor: token('color.background.neutral.subtle') }}>
         <div className="flex-shrink-0" style={{ width: TIME_AXIS_WIDTH, borderRight: `1px solid ${token('color.border')}` }}>
-          <div className="px-1 py-1 text-xs text-right" style={{ color: token('color.text.disabled') }}>Total</div>
+          <div className="px-1 py-1.5 text-[11px] font-semibold text-right uppercase tracking-wide" style={{ color: token('color.text.subtlest') }}>Total</div>
         </div>
         <div
           className="flex-1 grid"
@@ -571,8 +571,8 @@ export default function CalendarView({
             return (
               <div
                 key={dateKey}
-                className="text-center py-1 text-xs font-medium first:border-l-0"
-                style={{ color: token('color.text.subtlest'), borderLeft: `1px solid ${token('color.border')}` }}
+                className="text-center py-1.5 text-xs font-semibold tabular-nums first:border-l-0"
+                style={{ color: totalHours > 0 ? token('color.text') : token('color.text.disabled'), borderLeft: `1px solid ${token('color.border')}` }}
               >
                 {totalHours}h
               </div>
@@ -626,7 +626,7 @@ export default function CalendarView({
         {/* Scrollable calendar grid */}
         <div
           ref={scrollContainerRef}
-          className="flex-1 overflow-auto"
+          className="flex-1 overflow-auto calendar-scroll"
           onDragEnter={issueDragDrop.handleDragEnter}
           onDragOver={issueDragDrop.handleDragOver}
           onDragLeave={issueDragDrop.handleDragLeave}
@@ -656,8 +656,8 @@ export default function CalendarView({
                   .map((slot) => (
                     <div
                       key={slot.time}
-                      className="absolute right-2 text-xs -translate-y-1/2"
-                      style={{ top: slot.top, color: token('color.text.disabled') }}
+                      className="absolute right-2 text-[11px] font-medium -translate-y-1/2 tabular-nums"
+                      style={{ top: slot.top, color: token('color.text.subtlest') }}
                     >
                       {slot.time}
                     </div>

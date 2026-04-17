@@ -54,22 +54,25 @@ export default function CalendarDayColumn({
   };
 
   return (
-    <div className="flex flex-col min-w-0">
+    <div className={`flex flex-col min-w-0 calendar-day-col ${today ? 'calendar-day-today' : ''}`}>
       {/* Day header */}
       <div
         className="sticky top-0 z-20 text-center py-2 text-sm font-medium"
         style={{
-          borderBottom: `1px solid ${token('color.border')}`,
+          borderBottom: `2px solid ${today ? token('color.border.brand') : token('color.border')}`,
           backgroundColor: token('elevation.surface'),
-          color: today ? token('color.link') : token('color.text'),
+          color: today ? token('color.text.brand') : token('color.text'),
         }}
       >
-        <div className="text-xs" style={{ color: token('color.text.disabled') }}>{format(day, 'EEE')}</div>
+        <div className="text-[11px] uppercase tracking-wider font-semibold" style={{ color: today ? token('color.text.brand') : token('color.text.subtlest') }}>
+          {format(day, 'EEE')}
+        </div>
         <div
-          className={`
-            inline-flex items-center justify-center w-7 h-7 rounded-full
-          `}
-          style={today ? { backgroundColor: token('color.background.brand.bold'), color: '#fff' } : undefined}
+          className="inline-flex items-center justify-center w-8 h-8 rounded-full text-base font-bold mt-0.5"
+          style={today
+            ? { backgroundColor: token('color.background.brand.bold'), color: token('color.text.inverse') }
+            : { color: token('color.text') }
+          }
         >
           {format(day, 'd')}
         </div>
@@ -79,19 +82,18 @@ export default function CalendarDayColumn({
       <div
         ref={handleRef}
         className="relative flex-1"
-        style={{ height: totalHeight, borderRight: `1px solid ${token('color.border')}` }}
+        style={{
+          height: totalHeight,
+          borderRight: `1px solid ${token('color.border')}`,
+        }}
         onPointerDown={handleSlotPointerDown}
       >
-        {/* Slot grid lines */}
+        {/* Slot grid lines — hour lines solid, half-hour lines dashed */}
         {slots.map((slot) => (
           <div
             key={slot.time}
-            className="absolute left-0 right-0"
-            style={{
-              top: slot.top,
-              borderTop: `1px solid ${slot.isHourMark ? token('color.border') : token('color.border')}`,
-              opacity: slot.isHourMark ? 1 : 0.5,
-            }}
+            className={`absolute left-0 right-0 ${slot.isHourMark ? 'calendar-grid-line-hour' : 'calendar-grid-line-half'}`}
+            style={{ top: slot.top }}
           />
         ))}
 
@@ -112,12 +114,13 @@ export default function CalendarDayColumn({
         {/* Selection overlay (drag-to-create) */}
         {selection && (
           <div
-            className="absolute left-1 right-1 rounded pointer-events-none z-40"
+            className="absolute left-1 right-1 rounded-md pointer-events-none z-40 calendar-selection"
             style={{
               top: selection.startTop,
-              height: selection.height,
+              height: Math.max(selection.height, 4),
               backgroundColor: token('color.background.selected'),
               border: `2px solid ${token('color.border.focused')}`,
+              boxShadow: token('elevation.shadow.raised'),
             }}
           />
         )}
@@ -125,12 +128,18 @@ export default function CalendarDayColumn({
         {/* Now indicator */}
         {nowIndicatorTop != null && (
           <div
-            className="absolute left-0 right-0 z-30 pointer-events-none"
+            className="absolute left-0 right-0 z-30 pointer-events-none calendar-now-line"
             style={{ top: nowIndicatorTop }}
           >
             <div className="flex items-center">
-              <div className="w-2 h-2 rounded-full -ml-1" style={{ backgroundColor: token('color.background.danger.bold') }} />
-              <div className="flex-1 h-px" style={{ backgroundColor: token('color.background.danger.bold') }} />
+              <div
+                className="w-3 h-3 rounded-full -ml-1.5 calendar-now-dot"
+                style={{ backgroundColor: token('color.background.danger.bold') }}
+              />
+              <div
+                className="flex-1"
+                style={{ height: 2, backgroundColor: token('color.background.danger.bold') }}
+              />
             </div>
           </div>
         )}

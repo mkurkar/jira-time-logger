@@ -36,15 +36,16 @@ export default function DropZoneOverlay({
 
   return (
     <div
-      className="absolute left-0 right-0 z-30 pointer-events-none rounded-md border-2 border-dashed transition-all duration-75 flex items-center justify-center"
+      className="absolute left-1 right-1 z-30 pointer-events-none rounded-md border-2 border-dashed flex items-center justify-center calendar-dropzone"
       style={{
         top: dropTarget.top,
         height: dropTarget.height,
         borderColor: token('color.border.focused'),
         backgroundColor: token('color.background.selected'),
+        boxShadow: token('elevation.shadow.raised'),
       }}
     >
-      <div className="text-xs text-center" style={{ color: token('color.text.selected') }}>
+      <div className="text-xs font-medium text-center" style={{ color: token('color.text.selected') }}>
         {dropTarget.issueKey && (
           <span className="font-bold">{dropTarget.issueKey}</span>
         )}

@@ -29,9 +29,9 @@ export default function CalendarToolbar({
   userSelector,
 }: CalendarToolbarProps) {
   return (
-    <div className="flex items-center justify-between px-4 py-3" style={{
-      borderBottom: `1px solid ${token('color.border')}`,
-      backgroundColor: token('color.background.neutral'),
+    <div className="flex items-center justify-between px-4 py-2.5" style={{
+      borderBottom: `2px solid ${token('color.border')}`,
+      backgroundColor: token('elevation.surface'),
     }}>
       <div className="flex items-center gap-2">
         <IconButton
@@ -55,7 +55,7 @@ export default function CalendarToolbar({
           spacing="compact"
         />
       </div>
-      <h2 className="text-sm font-semibold" style={{ color: token('color.text') }}>{rangeLabel}</h2>
+      <h2 className="text-sm font-bold" style={{ color: token('color.text') }}>{rangeLabel}</h2>
       <div className="flex items-center gap-2">
         {userSelector}
         <div className="flex rounded-md overflow-hidden">

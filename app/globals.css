@@ -1,3 +1,88 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* ── Calendar grid polish ── */
+
+/* Subtle scrollbar for the calendar scroll container */
+.calendar-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.calendar-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.calendar-scroll::-webkit-scrollbar-thumb {
+  background: var(--ds-background-neutral-hovered, #091e4224);
+  border-radius: 3px;
+}
+.calendar-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--ds-background-neutral-pressed, #091e4236);
+}
+
+/* Grid slot lines: hour vs half-hour distinction */
+.calendar-grid-line-hour {
+  border-top: 1px solid var(--ds-border, #091e4224);
+}
+.calendar-grid-line-half {
+  border-top: 1px dashed var(--ds-border, #091e4224);
+  opacity: 0.5;
+}
+
+/* Day column hover highlight */
+.calendar-day-col {
+  transition: background-color 0.15s ease;
+}
+.calendar-day-col:hover {
+  background-color: var(--ds-background-neutral-subtle-hovered, #091e420f);
+}
+
+/* Event block hover lift */
+.calendar-event {
+  transition: box-shadow 0.15s ease, transform 0.1s ease, filter 0.15s ease;
+}
+.calendar-event:hover:not(.calendar-event--dragging) {
+  box-shadow: var(--ds-shadow-overlay, 0 4px 8px -2px #091e4240, 0 0 1px #091e424f) !important;
+  filter: brightness(1.08);
+  transform: scale(1.005);
+}
+.calendar-event--dragging {
+  box-shadow: var(--ds-shadow-overlay, 0 8px 12px -2px #091e4240) !important;
+  transform: scale(1.02);
+}
+
+/* Selection overlay pulse */
+.calendar-selection {
+  animation: calendar-selection-pulse 1.5s ease-in-out infinite;
+}
+@keyframes calendar-selection-pulse {
+  0%, 100% { opacity: 0.7; }
+  50% { opacity: 1; }
+}
+
+/* Now indicator glow */
+.calendar-now-line {
+  filter: drop-shadow(0 0 3px var(--ds-background-danger-bold, #E34935));
+}
+.calendar-now-dot {
+  animation: calendar-now-pulse 2s ease-in-out infinite;
+}
+@keyframes calendar-now-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.3); }
+}
+
+/* Drop zone animation */
+.calendar-dropzone {
+  animation: calendar-dropzone-pulse 0.8s ease-in-out infinite;
+}
+@keyframes calendar-dropzone-pulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+
+/* Today column subtle highlight */
+.calendar-day-today {
+  background-color: var(--ds-background-information, #E9F2FF);
+  background-color: color-mix(in srgb, var(--ds-background-information, #E9F2FF) 30%, transparent);
+}
