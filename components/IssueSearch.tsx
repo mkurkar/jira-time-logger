@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useCallback, useRef, useEffect } from 'react';
+import Textfield from '@atlaskit/textfield';
+import Spinner from '@atlaskit/spinner';
 import type { JiraIssue } from '@/src/types/jira';
 
 interface IssueSearchProps {
@@ -76,16 +78,18 @@ export default function IssueSearch({ onAddIssue, existingKeys, projectKey }: Is
   return (
     <div ref={containerRef} className="relative mb-4">
       <div className="flex items-center gap-2">
-        <input
-          type="text"
-          value={query}
-          onChange={(e) => handleInputChange(e.target.value)}
-          placeholder="Search issues by key or summary..."
-          className="flex-1 px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        />
-        {isLoading && (
-          <span className="text-sm text-gray-400 animate-pulse">Searching...</span>
-        )}
+        <div className="flex-1">
+          <Textfield
+            value={query}
+            onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange(e.target.value)}
+            placeholder="Search issues by key or summary..."
+            elemAfterInput={isLoading ? (
+              <div className="pr-2">
+                <Spinner size="small" />
+              </div>
+            ) : undefined}
+          />
+        </div>
       </div>
 
       {showDropdown && results.length > 0 && (

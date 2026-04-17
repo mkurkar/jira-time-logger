@@ -3,6 +3,8 @@
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import Button from '@atlaskit/button/new';
+import Textfield from '@atlaskit/textfield';
+import Modal, { ModalBody, ModalFooter, ModalHeader, ModalTitle, ModalTransition } from '@atlaskit/modal-dialog';
 import type { CalendarEvent } from '@/types/calendar';
 
 interface EditWorklogModalProps {
@@ -49,7 +51,7 @@ export default function EditWorklogModal({ isOpen, calendarEvent, onClose, onSav
     }
   }, [calendarEvent]);
 
-  if (!isOpen || !calendarEvent) return null;
+  const showModal = isOpen && calendarEvent !== null;
 
   const handleSave = async () => {
     const numHours = parseFloat(hours);
@@ -66,8 +68,8 @@ export default function EditWorklogModal({ isOpen, calendarEvent, onClose, onSav
       const timeSpentSeconds = Math.round(numHours * 3600);
 
       const body: Record<string, unknown> = {
-        issueKey: calendarEvent.issueKey,
-        worklogId: calendarEvent.id,
+        issueKey: calendarEvent!.issueKey,
+        worklogId: calendarEvent!.id,
         timeSpentSeconds,
         started: toJiraDatetime(startedDate),
       };
@@ -96,87 +98,84 @@ export default function EditWorklogModal({ isOpen, calendarEvent, onClose, onSav
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={onClose}>
-      <div
-        className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4 p-6"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h3 className="text-lg font-semibold text-gray-900 mb-1">Edit Worklog</h3>
-        <p className="text-sm text-gray-500 mb-4">
-          <span className="font-medium text-blue-600">{calendarEvent.issueKey}</span>{' '}
-          {calendarEvent.issueSummary}
-        </p>
+    <ModalTransition>
+      {showModal && (
+        <Modal onClose={onClose} width="medium">
+          <ModalHeader>
+            <ModalTitle>Edit Worklog</ModalTitle>
+          </ModalHeader>
+          <ModalBody>
+            <p className="text-sm text-gray-500 mb-4">
+              <span className="font-medium text-blue-600">{calendarEvent!.issueKey}</span>{' '}
+              {calendarEvent!.issueSummary}
+            </p>
 
-        {error && (
-          <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
-            {error}
-          </div>
-        )}
+            {error && (
+              <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                {error}
+              </div>
+            )}
 
-        <div className="space-y-3">
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
-              <input
-                type="date"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+            <div className="space-y-3">
+              <div className="flex gap-3">
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                  <Textfield
+                    type="date"
+                    value={date}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setDate(e.target.value)}
+                  />
+                </div>
+                <div className="flex-1">
+                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+                  <Textfield
+                    type="time"
+                    value={time}
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => setTime(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Duration (hours)</label>
+                <Textfield
+                  type="number"
+                  value={hours}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setHours(e.target.value)}
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Comment (optional)</label>
+                <textarea
+                  value={comment}
+                  onChange={(e) => setComment(e.target.value)}
+                  rows={2}
+                  placeholder="Add a note..."
+                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                />
+              </div>
             </div>
-            <div className="flex-1">
-              <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
-              <input
-                type="time"
-                value={time}
-                onChange={(e) => setTime(e.target.value)}
-                className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Duration (hours)</label>
-            <input
-              type="number"
-              value={hours}
-              onChange={(e) => setHours(e.target.value)}
-              min="0.25"
-              step="0.25"
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Comment (optional)</label>
-            <textarea
-              value={comment}
-              onChange={(e) => setComment(e.target.value)}
-              rows={2}
-              placeholder="Add a note..."
-              className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
-            />
-          </div>
-        </div>
-
-        <div className="flex justify-end gap-2 mt-5">
-          <Button
-            onClick={onClose}
-            appearance="subtle"
-            isDisabled={isSaving}
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={handleSave}
-            appearance="primary"
-            isDisabled={isSaving}
-            isLoading={isSaving}
-          >
-            Save Changes
-          </Button>
-        </div>
-      </div>
-    </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              onClick={onClose}
+              appearance="subtle"
+              isDisabled={isSaving}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSave}
+              appearance="primary"
+              isDisabled={isSaving}
+              isLoading={isSaving}
+            >
+              Save Changes
+            </Button>
+          </ModalFooter>
+        </Modal>
+      )}
+    </ModalTransition>
   );
 }

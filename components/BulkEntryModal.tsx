@@ -3,6 +3,8 @@
 import { useState, useCallback } from 'react';
 import Button, { IconButton } from '@atlaskit/button/new';
 import CrossIcon from '@atlaskit/icon/core/cross';
+import Textfield from '@atlaskit/textfield';
+import Modal, { ModalBody, ModalFooter, ModalHeader, ModalTitle, ModalTransition } from '@atlaskit/modal-dialog';
 import { formatDateISO } from '@/lib/date-utils';
 
 interface BulkEntry {
@@ -112,106 +114,104 @@ export default function BulkEntryModal({ isOpen, onClose, onComplete }: BulkEntr
     }
   }, [isSubmitting, onClose]);
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">Bulk Time Entry</h2>
-          <IconButton
-            icon={CrossIcon}
-            label="Close"
-            onClick={handleClose}
-            isDisabled={isSubmitting}
-            appearance="subtle"
-          />
-        </div>
-
-        {/* Body */}
-        <div className="overflow-y-auto px-6 py-4 flex-1">
-          {isSubmitting && (
-            <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-blue-700 text-sm">
-              Saving... {progress.done}/{progress.total} entries
-            </div>
-          )}
-
-          <div className="space-y-3">
-            {entries.map((entry) => (
-              <div key={entry.id} className="flex items-center gap-2">
-                <input
-                  type="text"
-                  placeholder="PROJ-123"
-                  value={entry.issueKey}
-                  onChange={(e) => updateEntry(entry.id, 'issueKey', e.target.value)}
-                  disabled={isSubmitting}
-                  className="flex-1 px-3 py-2 border rounded text-sm"
-                />
-                <input
-                  type="date"
-                  value={entry.date}
-                  onChange={(e) => updateEntry(entry.id, 'date', e.target.value)}
-                  disabled={isSubmitting}
-                  className="px-3 py-2 border rounded text-sm"
-                />
-                <input
-                  type="text"
-                  placeholder="Hours"
-                  value={entry.hours}
-                  onChange={(e) => updateEntry(entry.id, 'hours', e.target.value)}
-                  disabled={isSubmitting}
-                  className="w-20 px-3 py-2 border rounded text-sm text-center"
-                />
-                {/* Status indicator */}
-                <span className="w-6 text-center">
-                  {entry.status === 'saving' && '\u23F3'}
-                  {entry.status === 'success' && '\u2705'}
-                  {entry.status === 'error' && (
-                    <span title={entry.error} className="cursor-help">{'\u274C'}</span>
-                  )}
-                </span>
-                <IconButton
-                  icon={CrossIcon}
-                  label="Remove row"
-                  onClick={() => removeRow(entry.id)}
-                  isDisabled={isSubmitting || entries.length === 1}
-                  appearance="subtle"
-                  spacing="compact"
-                />
+    <ModalTransition>
+      {isOpen && (
+        <Modal onClose={handleClose} width="large">
+          <ModalHeader>
+            <ModalTitle>Bulk Time Entry</ModalTitle>
+            <IconButton
+              icon={CrossIcon}
+              label="Close"
+              onClick={handleClose}
+              isDisabled={isSubmitting}
+              appearance="subtle"
+            />
+          </ModalHeader>
+          <ModalBody>
+            {isSubmitting && (
+              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-blue-700 text-sm">
+                Saving... {progress.done}/{progress.total} entries
               </div>
-            ))}
-          </div>
+            )}
 
-          <Button
-            onClick={addRow}
-            isDisabled={isSubmitting}
-            appearance="subtle"
-            spacing="compact"
-          >
-            + Add another entry
-          </Button>
-        </div>
+            <div className="space-y-3">
+              {entries.map((entry) => (
+                <div key={entry.id} className="flex items-center gap-2">
+                  <div className="flex-1">
+                    <Textfield
+                      placeholder="PROJ-123"
+                      value={entry.issueKey}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateEntry(entry.id, 'issueKey', e.target.value)}
+                      isDisabled={isSubmitting}
+                    />
+                  </div>
+                  <div>
+                    <Textfield
+                      type="date"
+                      value={entry.date}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateEntry(entry.id, 'date', e.target.value)}
+                      isDisabled={isSubmitting}
+                    />
+                  </div>
+                  <div style={{ width: 80 }}>
+                    <Textfield
+                      placeholder="Hours"
+                      value={entry.hours}
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateEntry(entry.id, 'hours', e.target.value)}
+                      isDisabled={isSubmitting}
+                    />
+                  </div>
+                  {/* Status indicator */}
+                  <span className="w-6 text-center">
+                    {entry.status === 'saving' && '\u23F3'}
+                    {entry.status === 'success' && '\u2705'}
+                    {entry.status === 'error' && (
+                      <span title={entry.error} className="cursor-help">{'\u274C'}</span>
+                    )}
+                  </span>
+                  <IconButton
+                    icon={CrossIcon}
+                    label="Remove row"
+                    onClick={() => removeRow(entry.id)}
+                    isDisabled={isSubmitting || entries.length === 1}
+                    appearance="subtle"
+                    spacing="compact"
+                  />
+                </div>
+              ))}
+            </div>
 
-        {/* Footer */}
-        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t">
-          <Button
-            onClick={handleClose}
-            isDisabled={isSubmitting}
-            appearance="subtle"
-          >
-            Cancel
-          </Button>
-          <Button
-            onClick={submitAll}
-            isDisabled={isSubmitting}
-            isLoading={isSubmitting}
-            appearance="primary"
-          >
-            {isSubmitting ? `Saving ${progress.done}/${progress.total}...` : 'Submit All'}
-          </Button>
-        </div>
-      </div>
-    </div>
+            <div className="mt-3">
+              <Button
+                onClick={addRow}
+                isDisabled={isSubmitting}
+                appearance="subtle"
+                spacing="compact"
+              >
+                + Add another entry
+              </Button>
+            </div>
+          </ModalBody>
+          <ModalFooter>
+            <Button
+              onClick={handleClose}
+              isDisabled={isSubmitting}
+              appearance="subtle"
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={submitAll}
+              isDisabled={isSubmitting}
+              isLoading={isSubmitting}
+              appearance="primary"
+            >
+              {isSubmitting ? `Saving ${progress.done}/${progress.total}...` : 'Submit All'}
+            </Button>
+          </ModalFooter>
+        </Modal>
+      )}
+    </ModalTransition>
   );
 }

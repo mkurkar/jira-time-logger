@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Select from '@atlaskit/select';
 import { IconButton } from '@atlaskit/button/new';
 import CrossIcon from '@atlaskit/icon/core/cross';
 import type { CalendarSettings } from '@/types/calendar';
@@ -34,9 +35,18 @@ export default function CalendarSettingsPopover({
   };
 
   // Build start hour options (0-12)
-  const startHourOptions = Array.from({ length: 13 }, (_, i) => i);
+  const startHourOptions = Array.from({ length: 13 }, (_, i) => ({
+    label: `${String(i).padStart(2, '0')}:00`,
+    value: i,
+  }));
   // Build end hour options (12-24)
-  const endHourOptions = Array.from({ length: 13 }, (_, i) => i + 12);
+  const endHourOptions = Array.from({ length: 13 }, (_, i) => ({
+    label: `${String(i + 12).padStart(2, '0')}:00`,
+    value: i + 12,
+  }));
+
+  const snapOptions = SNAP_OPTIONS.map((v) => ({ label: `${v} min`, value: v }));
+  const slotOptions = SLOT_OPTIONS.map((v) => ({ label: `${v} min`, value: v }));
 
   return (
     <div
@@ -56,59 +66,59 @@ export default function CalendarSettingsPopover({
 
       <div className="space-y-3">
         {/* Snap granularity */}
-        <div className="flex items-center justify-between">
-          <label className="text-xs text-gray-600">Snap to</label>
-          <select
-            value={settings.snapMinutes}
-            onChange={(e) => handleChange('snapMinutes', Number(e.target.value))}
-            className="text-xs border border-gray-300 rounded px-2 py-1 bg-white text-gray-700"
-          >
-            {SNAP_OPTIONS.map((v) => (
-              <option key={v} value={v}>{v} min</option>
-            ))}
-          </select>
+        <div className="flex items-center justify-between gap-2">
+          <label className="text-xs text-gray-600 flex-shrink-0">Snap to</label>
+          <div style={{ width: 120 }}>
+            <Select
+              options={snapOptions}
+              value={snapOptions.find((o) => o.value === settings.snapMinutes)}
+              onChange={(opt: { label: string; value: number } | null) => opt && handleChange('snapMinutes', opt.value)}
+              spacing="compact"
+              menuPlacement="auto"
+            />
+          </div>
         </div>
 
         {/* Start hour */}
-        <div className="flex items-center justify-between">
-          <label className="text-xs text-gray-600">Start hour</label>
-          <select
-            value={settings.startHour}
-            onChange={(e) => handleChange('startHour', Number(e.target.value))}
-            className="text-xs border border-gray-300 rounded px-2 py-1 bg-white text-gray-700"
-          >
-            {startHourOptions.map((h) => (
-              <option key={h} value={h}>{String(h).padStart(2, '0')}:00</option>
-            ))}
-          </select>
+        <div className="flex items-center justify-between gap-2">
+          <label className="text-xs text-gray-600 flex-shrink-0">Start hour</label>
+          <div style={{ width: 120 }}>
+            <Select
+              options={startHourOptions}
+              value={startHourOptions.find((o) => o.value === settings.startHour)}
+              onChange={(opt: { label: string; value: number } | null) => opt && handleChange('startHour', opt.value)}
+              spacing="compact"
+              menuPlacement="auto"
+            />
+          </div>
         </div>
 
         {/* End hour */}
-        <div className="flex items-center justify-between">
-          <label className="text-xs text-gray-600">End hour</label>
-          <select
-            value={settings.endHour}
-            onChange={(e) => handleChange('endHour', Number(e.target.value))}
-            className="text-xs border border-gray-300 rounded px-2 py-1 bg-white text-gray-700"
-          >
-            {endHourOptions.map((h) => (
-              <option key={h} value={h}>{String(h).padStart(2, '0')}:00</option>
-            ))}
-          </select>
+        <div className="flex items-center justify-between gap-2">
+          <label className="text-xs text-gray-600 flex-shrink-0">End hour</label>
+          <div style={{ width: 120 }}>
+            <Select
+              options={endHourOptions}
+              value={endHourOptions.find((o) => o.value === settings.endHour)}
+              onChange={(opt: { label: string; value: number } | null) => opt && handleChange('endHour', opt.value)}
+              spacing="compact"
+              menuPlacement="auto"
+            />
+          </div>
         </div>
 
         {/* Slot display size */}
-        <div className="flex items-center justify-between">
-          <label className="text-xs text-gray-600">Slot size</label>
-          <select
-            value={settings.slotMinutes}
-            onChange={(e) => handleChange('slotMinutes', Number(e.target.value))}
-            className="text-xs border border-gray-300 rounded px-2 py-1 bg-white text-gray-700"
-          >
-            {SLOT_OPTIONS.map((v) => (
-              <option key={v} value={v}>{v} min</option>
-            ))}
-          </select>
+        <div className="flex items-center justify-between gap-2">
+          <label className="text-xs text-gray-600 flex-shrink-0">Slot size</label>
+          <div style={{ width: 120 }}>
+            <Select
+              options={slotOptions}
+              value={slotOptions.find((o) => o.value === settings.slotMinutes)}
+              onChange={(opt: { label: string; value: number } | null) => opt && handleChange('slotMinutes', opt.value)}
+              spacing="compact"
+              menuPlacement="auto"
+            />
+          </div>
         </div>
       </div>
     </div>

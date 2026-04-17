@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Button from '@atlaskit/button/new';
+import Spinner from '@atlaskit/spinner';
 import WeekNavigator from '@/components/WeekNavigator';
 import TimesheetRow from '@/components/TimesheetRow';
 import GrandTotal from '@/components/GrandTotal';
@@ -201,7 +202,7 @@ export default function WeeklyGrid({ projectKey }: WeeklyGridProps) {
       {/* Loading state */}
       {isLoadingWorklogs && (
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin h-8 w-8 border-4 border-blue-500 border-t-transparent rounded-full" />
+          <Spinner size="large" />
           <span className="ml-3 text-gray-500">Loading timesheet data...</span>
         </div>
       )}

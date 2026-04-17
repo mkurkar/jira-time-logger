@@ -1,5 +1,7 @@
 'use client';
 
+import Select from '@atlaskit/select';
+import Spinner from '@atlaskit/spinner';
 import type { JiraProject } from '@/src/types/jira';
 
 interface ProjectSelectorProps {
@@ -18,7 +20,7 @@ export default function ProjectSelector({
   if (isLoading) {
     return (
       <div className="flex items-center gap-2">
-        <div className="animate-spin h-4 w-4 border-2 border-blue-500 border-t-transparent rounded-full" />
+        <Spinner size="small" />
         <span className="text-sm text-gray-500">Loading projects...</span>
       </div>
     );
@@ -30,20 +32,27 @@ export default function ProjectSelector({
     );
   }
 
+  const options = projects.map((p) => ({
+    label: `${p.name} (${p.key})`,
+    value: p.key,
+  }));
+
+  const selectedOption = options.find((o) => o.value === selectedProject?.key) ?? null;
+
   return (
-    <select
-      value={selectedProject?.key ?? ''}
-      onChange={(e) => {
-        const project = projects.find((p) => p.key === e.target.value);
-        if (project) onSelect(project);
-      }}
-      className="rounded-lg border border-gray-300 bg-white px-3 py-1.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-    >
-      {projects.map((p) => (
-        <option key={p.key} value={p.key}>
-          {p.name} ({p.key})
-        </option>
-      ))}
-    </select>
+    <div style={{ minWidth: 200 }}>
+      <Select
+        options={options}
+        value={selectedOption}
+        onChange={(option: { label: string; value: string } | null) => {
+          if (option) {
+            const project = projects.find((p) => p.key === option.value);
+            if (project) onSelect(project);
+          }
+        }}
+        spacing="compact"
+        placeholder="Select project..."
+      />
+    </div>
   );
 }

@@ -4,6 +4,7 @@ import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { IconButton } from '@atlaskit/button/new';
 import ChevronLeftIcon from '@atlaskit/icon/core/chevron-left';
 import ChevronRightIcon from '@atlaskit/icon/core/chevron-right';
+import Textfield from '@atlaskit/textfield';
 import type { JiraIssue } from '@/src/types/jira';
 import IssueSidebarItem from './IssueSidebarItem';
 
@@ -93,12 +94,11 @@ export default function IssueSidebar({
 
       {/* Search input */}
       <div className="px-3 py-2 border-b border-gray-100">
-        <input
-          type="text"
+        <Textfield
           value={searchTerm}
           onChange={handleSearchChange}
           placeholder="Search issues..."
-          className="w-full px-2 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
+          isCompact
         />
       </div>
 

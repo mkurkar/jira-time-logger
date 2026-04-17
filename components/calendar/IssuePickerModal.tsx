@@ -4,6 +4,8 @@ import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react'
 import { IconButton } from '@atlaskit/button/new';
 import CrossIcon from '@atlaskit/icon/core/cross';
 import SearchIcon from '@atlaskit/icon/core/search';
+import Textfield from '@atlaskit/textfield';
+import Modal, { ModalBody, ModalHeader, ModalTitle, ModalTransition } from '@atlaskit/modal-dialog';
 import type { JiraIssue } from '@/src/types/jira';
 
 interface IssuePickerModalProps {
@@ -62,18 +64,6 @@ export default function IssuePickerModal({
     }
   }, [isOpen]);
 
-  // Escape key closes the modal
-  useEffect(() => {
-    if (!isOpen) return;
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose();
-      }
-    };
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
-
   // Filter issues by search term
   const filteredIssues = useMemo(() => {
     if (!searchTerm.trim()) return issues;
@@ -103,103 +93,91 @@ export default function IssuePickerModal({
     [onSelect]
   );
 
-  if (!isOpen) return null;
-
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
-      onClick={onClose}
-    >
-      {/* Backdrop */}
-      <div className="absolute inset-0 bg-black/30" />
-
-      {/* Modal */}
-      <div
-        className="relative bg-white rounded-lg border border-gray-200 shadow-xl w-full max-w-md mx-4 max-h-[80vh] flex flex-col"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-          <h2 className="text-sm font-semibold text-gray-800">Select Issue</h2>
-          <IconButton
-            icon={CrossIcon}
-            label="Close"
-            onClick={onClose}
-            appearance="subtle"
-            spacing="compact"
-          />
-        </div>
-
-        {/* Search */}
-        <div className="px-4 py-2 border-b border-gray-100">
-          <div className="relative">
-            <span className="absolute left-2.5 top-1/2 -translate-y-1/2">
-              <SearchIcon label="" size="small" />
-            </span>
-            <input
-              ref={inputRef}
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search issues..."
-              className="w-full pl-8 pr-3 py-1.5 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-400 focus:border-blue-400"
+    <ModalTransition>
+      {isOpen && (
+        <Modal onClose={onClose} width="medium">
+          <ModalHeader>
+            <ModalTitle>Select Issue</ModalTitle>
+            <IconButton
+              icon={CrossIcon}
+              label="Close"
+              onClick={onClose}
+              appearance="subtle"
+              spacing="compact"
             />
-          </div>
-        </div>
-
-        {/* Issue list */}
-        <div className="flex-1 overflow-y-auto min-h-0">
-          {/* Recently used section */}
-          {recentIssues.length > 0 && (
-            <>
-              <div className="px-4 py-1.5 bg-amber-50/80 text-[10px] font-semibold text-amber-700 uppercase tracking-wider border-b border-amber-100 sticky top-0">
-                Recently Used
-              </div>
-              {recentIssues.map((issue) => (
-                <IssueRow
-                  key={`recent-${issue.key}`}
-                  issue={issue}
-                  onClick={handleSelect}
-                />
-              ))}
-            </>
-          )}
-
-          {/* All issues section */}
-          {otherIssues.length > 0 && (
-            <>
-              <div className="px-4 py-1.5 bg-gray-50 text-[10px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100 sticky top-0">
-                All Issues
-              </div>
-              {otherIssues.map((issue) => (
-                <IssueRow
-                  key={issue.key}
-                  issue={issue}
-                  onClick={handleSelect}
-                />
-              ))}
-            </>
-          )}
-
-          {/* Empty state */}
-          {filteredIssues.length === 0 && (
-            <div className="px-4 py-8 text-center text-xs text-gray-400">
-              {searchTerm.trim() ? 'No matching issues' : 'No issues available'}
+          </ModalHeader>
+          <ModalBody>
+            {/* Search */}
+            <div className="mb-3">
+              <Textfield
+                ref={inputRef}
+                value={searchTerm}
+                onChange={(e: React.ChangeEvent<HTMLInputElement>) => setSearchTerm(e.target.value)}
+                placeholder="Search issues..."
+                elemBeforeInput={
+                  <span className="pl-2">
+                    <SearchIcon label="" size="small" />
+                  </span>
+                }
+              />
             </div>
-          )}
-        </div>
 
-        {/* Footer: time preview */}
-        {startTime && (
-          <div className="px-4 py-2.5 border-t border-gray-200 bg-gray-50 rounded-b-lg">
-            <p className="text-xs text-gray-500">
-              Creating: <span className="font-medium text-gray-700">{formatDuration(duration)}</span>{' '}
-              on {formatStartTime(startTime)}
-            </p>
-          </div>
-        )}
-      </div>
-    </div>
+            {/* Issue list */}
+            <div className="max-h-[50vh] overflow-y-auto -mx-1">
+              {/* Recently used section */}
+              {recentIssues.length > 0 && (
+                <>
+                  <div className="px-4 py-1.5 bg-amber-50/80 text-[10px] font-semibold text-amber-700 uppercase tracking-wider border-b border-amber-100 sticky top-0">
+                    Recently Used
+                  </div>
+                  {recentIssues.map((issue) => (
+                    <IssueRow
+                      key={`recent-${issue.key}`}
+                      issue={issue}
+                      onClick={handleSelect}
+                    />
+                  ))}
+                </>
+              )}
+
+              {/* All issues section */}
+              {otherIssues.length > 0 && (
+                <>
+                  <div className="px-4 py-1.5 bg-gray-50 text-[10px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100 sticky top-0">
+                    All Issues
+                  </div>
+                  {otherIssues.map((issue) => (
+                    <IssueRow
+                      key={issue.key}
+                      issue={issue}
+                      onClick={handleSelect}
+                    />
+                  ))}
+                </>
+              )}
+
+              {/* Empty state */}
+              {filteredIssues.length === 0 && (
+                <div className="px-4 py-8 text-center text-xs text-gray-400">
+                  {searchTerm.trim() ? 'No matching issues' : 'No issues available'}
+                </div>
+              )}
+            </div>
+
+            {/* Footer: time preview */}
+            {startTime && (
+              <div className="mt-3 px-4 py-2.5 bg-gray-50 rounded-md">
+                <p className="text-xs text-gray-500">
+                  Creating: <span className="font-medium text-gray-700">{formatDuration(duration)}</span>{' '}
+                  on {formatStartTime(startTime)}
+                </p>
+              </div>
+            )}
+          </ModalBody>
+        </Modal>
+      )}
+    </ModalTransition>
   );
 }
 

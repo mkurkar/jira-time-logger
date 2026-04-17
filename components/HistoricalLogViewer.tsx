@@ -3,6 +3,9 @@
 import { useState, useCallback, useEffect } from 'react';
 import Button, { IconButton } from '@atlaskit/button/new';
 import CrossIcon from '@atlaskit/icon/core/cross';
+import Textfield from '@atlaskit/textfield';
+import Spinner from '@atlaskit/spinner';
+import Modal, { ModalBody, ModalHeader, ModalTitle, ModalTransition } from '@atlaskit/modal-dialog';
 import { formatDateISO } from '@/lib/date-utils';
 import { formatHours } from '@/lib/worklog-aggregator';
 import { adfToText } from '@/lib/adf-helpers';
@@ -87,103 +90,106 @@ export default function HistoricalLogViewer({ isOpen, onClose, savedIssueKeys }:
     fetchWorklogs();
   }, [isOpen]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!isOpen) return null;
-
   const totalHours = worklogs.reduce((sum, e) => sum + e.worklog.timeSpentSeconds, 0) / 3600;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-3xl max-h-[80vh] flex flex-col">
-        {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b">
-          <h2 className="text-lg font-semibold text-gray-900">Historical Work Logs</h2>
-          <IconButton
-            icon={CrossIcon}
-            label="Close"
-            onClick={onClose}
-            appearance="subtle"
-          />
-        </div>
-
-        {/* Date range controls */}
-        <div className="flex items-center gap-4 px-6 py-3 border-b bg-gray-50">
-          <label className="text-sm text-gray-600">
-            From:
-            <input
-              type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="ml-2 px-3 py-1.5 border rounded text-sm"
+    <ModalTransition>
+      {isOpen && (
+        <Modal onClose={onClose} width="x-large">
+          <ModalHeader>
+            <ModalTitle>Historical Work Logs</ModalTitle>
+            <IconButton
+              icon={CrossIcon}
+              label="Close"
+              onClick={onClose}
+              appearance="subtle"
             />
-          </label>
-          <label className="text-sm text-gray-600">
-            To:
-            <input
-              type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="ml-2 px-3 py-1.5 border rounded text-sm"
-            />
-          </label>
-          <Button
-            onClick={() => fetchWorklogs()}
-            isDisabled={isLoading}
-            isLoading={isLoading}
-            appearance="primary"
-          >
-            Search
-          </Button>
-          {worklogs.length > 0 && (
-            <span className="ml-auto text-sm text-gray-500">
-              {worklogs.length} entries &middot; {formatHours(Math.round(totalHours * 10) / 10)} total
-            </span>
-          )}
-        </div>
-
-        {/* Body */}
-        <div className="overflow-y-auto px-6 py-4 flex-1">
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
-              {error}
+          </ModalHeader>
+          <ModalBody>
+            {/* Date range controls */}
+            <div className="flex items-center gap-4 mb-4 p-3 bg-gray-50 rounded-md">
+              <label className="text-sm text-gray-600 flex items-center gap-2">
+                From:
+                <Textfield
+                  type="date"
+                  value={startDate}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setStartDate(e.target.value)}
+                  isCompact
+                />
+              </label>
+              <label className="text-sm text-gray-600 flex items-center gap-2">
+                To:
+                <Textfield
+                  type="date"
+                  value={endDate}
+                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEndDate(e.target.value)}
+                  isCompact
+                />
+              </label>
+              <Button
+                onClick={() => fetchWorklogs()}
+                isDisabled={isLoading}
+                isLoading={isLoading}
+                appearance="primary"
+              >
+                Search
+              </Button>
+              {worklogs.length > 0 && (
+                <span className="ml-auto text-sm text-gray-500">
+                  {worklogs.length} entries &middot; {formatHours(Math.round(totalHours * 10) / 10)} total
+                </span>
+              )}
             </div>
-          )}
 
-          {worklogs.length === 0 && !isLoading && !error && (
-            <p className="text-center text-gray-500 py-8">
-              No worklogs found for the selected date range. Try adjusting the dates and clicking &quot;Search&quot;.
-            </p>
-          )}
+            {error && (
+              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+                {error}
+              </div>
+            )}
 
-          {worklogs.length > 0 && (
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b text-left text-gray-600">
-                  <th className="pb-2 font-semibold">Issue</th>
-                  <th className="pb-2 font-semibold">Date</th>
-                  <th className="pb-2 font-semibold">Time</th>
-                  <th className="pb-2 font-semibold">Author</th>
-                  <th className="pb-2 font-semibold">Comment</th>
-                </tr>
-              </thead>
-              <tbody>
-                {worklogs.map((entry) => (
-                  <tr key={`${entry.issueKey}-${entry.worklog.id}`} className="border-b border-gray-100">
-                    <td className="py-2 text-blue-600 font-medium">{entry.issueKey}</td>
-                    <td className="py-2 text-gray-700">
-                      {new Date(entry.worklog.started).toLocaleDateString()}
-                    </td>
-                    <td className="py-2 text-gray-900 font-medium">{entry.worklog.timeSpent}</td>
-                    <td className="py-2 text-gray-600">{entry.worklog.author.displayName}</td>
-                    <td className="py-2 text-gray-500 truncate max-w-[200px]">
-                      {entry.worklog.comment ? adfToText(entry.worklog.comment) : '\u2014'}
-                    </td>
+            {isLoading && (
+              <div className="flex items-center justify-center py-8">
+                <Spinner size="large" />
+              </div>
+            )}
+
+            {worklogs.length === 0 && !isLoading && !error && (
+              <p className="text-center text-gray-500 py-8">
+                No worklogs found for the selected date range. Try adjusting the dates and clicking &quot;Search&quot;.
+              </p>
+            )}
+
+            {worklogs.length > 0 && (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left text-gray-600">
+                    <th className="pb-2 font-semibold">Issue</th>
+                    <th className="pb-2 font-semibold">Date</th>
+                    <th className="pb-2 font-semibold">Time</th>
+                    <th className="pb-2 font-semibold">Author</th>
+                    <th className="pb-2 font-semibold">Comment</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-      </div>
-    </div>
+                </thead>
+                <tbody>
+                  {worklogs.map((entry) => (
+                    <tr key={`${entry.issueKey}-${entry.worklog.id}`} className="border-b border-gray-100">
+                      <td className="py-2 text-blue-600 font-medium">{entry.issueKey}</td>
+                      <td className="py-2 text-gray-700">
+                        {new Date(entry.worklog.started).toLocaleDateString()}
+                      </td>
+                      <td className="py-2 text-gray-900 font-medium">{entry.worklog.timeSpent}</td>
+                      <td className="py-2 text-gray-600">{entry.worklog.author.displayName}</td>
+                      <td className="py-2 text-gray-500 truncate max-w-[200px]">
+                        {entry.worklog.comment ? adfToText(entry.worklog.comment) : '\u2014'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </ModalBody>
+        </Modal>
+      )}
+    </ModalTransition>
   );
 }
