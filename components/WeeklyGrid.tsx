@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Button from '@atlaskit/button/new';
 import Spinner from '@atlaskit/spinner';
+import { AutoDismissFlag, FlagGroup } from '@atlaskit/flag';
 import WeekNavigator from '@/components/WeekNavigator';
 import TimesheetRow from '@/components/TimesheetRow';
 import GrandTotal from '@/components/GrandTotal';
@@ -26,7 +27,7 @@ export default function WeeklyGrid({ projectKey }: WeeklyGridProps) {
   const [weekStart, setWeekStart] = useState<Date>(() => new Date());
   const [weekRange, setWeekRange] = useState<WeekRange>(() => getWeekRange(new Date()));
   const [savedIssues, setSavedIssues] = useState<IssueSelection[]>([]);
-  const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
+  const [flags, setFlags] = useState<Array<{ id: number; message: string; type: 'success' | 'error' }>>([]);
   const [showBulkEntry, setShowBulkEntry] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
 
@@ -130,8 +131,7 @@ export default function WeeklyGrid({ projectKey }: WeeklyGridProps) {
 
   // Toast management
   const showToast = useCallback((message: string, type: 'success' | 'error') => {
-    setToast({ message, type });
-    setTimeout(() => setToast(null), 3000);
+    setFlags((prev) => [...prev, { id: Date.now(), message, type }]);
   }, []);
 
   // Week navigation handlers
@@ -152,14 +152,17 @@ export default function WeeklyGrid({ projectKey }: WeeklyGridProps) {
 
   return (
     <div>
-      {/* Toast notification */}
-      {toast && (
-        <div className={`fixed top-4 right-4 z-50 px-4 py-2 rounded-lg shadow-lg text-sm font-medium transition-all ${
-          toast.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-        }`}>
-          {toast.message}
-        </div>
-      )}
+      {/* Toast notifications */}
+      <FlagGroup onDismissed={(id) => setFlags((prev) => prev.filter((f) => f.id !== id))}>
+        {flags.map((flag) => (
+          <AutoDismissFlag
+            key={flag.id}
+            id={flag.id}
+            appearance={flag.type === 'success' ? 'success' : 'error'}
+            title={flag.message}
+          />
+        ))}
+      </FlagGroup>
 
       {/* Week navigation */}
       <WeekNavigator

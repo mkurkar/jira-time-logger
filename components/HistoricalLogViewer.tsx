@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from 'react';
 import Button, { IconButton } from '@atlaskit/button/new';
 import CrossIcon from '@atlaskit/icon/core/cross';
 import Textfield from '@atlaskit/textfield';
-import Spinner from '@atlaskit/spinner';
+import DynamicTable from '@atlaskit/dynamic-table';
 import Modal, { ModalBody, ModalHeader, ModalTitle, ModalTransition } from '@atlaskit/modal-dialog';
 import { formatDateISO } from '@/lib/date-utils';
 import { formatHours } from '@/lib/worklog-aggregator';
@@ -147,46 +147,34 @@ export default function HistoricalLogViewer({ isOpen, onClose, savedIssueKeys }:
               </div>
             )}
 
-            {isLoading && (
-              <div className="flex items-center justify-center py-8">
-                <Spinner size="large" />
-              </div>
-            )}
-
-            {worklogs.length === 0 && !isLoading && !error && (
-              <p className="text-center text-gray-500 py-8">
-                No worklogs found for the selected date range. Try adjusting the dates and clicking &quot;Search&quot;.
-              </p>
-            )}
-
-            {worklogs.length > 0 && (
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b text-left text-gray-600">
-                    <th className="pb-2 font-semibold">Issue</th>
-                    <th className="pb-2 font-semibold">Date</th>
-                    <th className="pb-2 font-semibold">Time</th>
-                    <th className="pb-2 font-semibold">Author</th>
-                    <th className="pb-2 font-semibold">Comment</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {worklogs.map((entry) => (
-                    <tr key={`${entry.issueKey}-${entry.worklog.id}`} className="border-b border-gray-100">
-                      <td className="py-2 text-blue-600 font-medium">{entry.issueKey}</td>
-                      <td className="py-2 text-gray-700">
-                        {new Date(entry.worklog.started).toLocaleDateString()}
-                      </td>
-                      <td className="py-2 text-gray-900 font-medium">{entry.worklog.timeSpent}</td>
-                      <td className="py-2 text-gray-600">{entry.worklog.author.displayName}</td>
-                      <td className="py-2 text-gray-500 truncate max-w-[200px]">
-                        {entry.worklog.comment ? adfToText(entry.worklog.comment) : '\u2014'}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            )}
+            <DynamicTable
+              head={{
+                cells: [
+                  { key: 'issue', content: 'Issue' },
+                  { key: 'date', content: 'Date' },
+                  { key: 'time', content: 'Time' },
+                  { key: 'author', content: 'Author' },
+                  { key: 'comment', content: 'Comment' },
+                ],
+              }}
+              rows={worklogs.map((entry) => ({
+                key: `${entry.issueKey}-${entry.worklog.id}`,
+                cells: [
+                  { key: 'issue', content: <span className="text-blue-600 font-medium">{entry.issueKey}</span> },
+                  { key: 'date', content: new Date(entry.worklog.started).toLocaleDateString() },
+                  { key: 'time', content: <span className="font-medium">{entry.worklog.timeSpent}</span> },
+                  { key: 'author', content: entry.worklog.author.displayName },
+                  { key: 'comment', content: <span className="truncate max-w-[200px] block">{entry.worklog.comment ? adfToText(entry.worklog.comment) : '\u2014'}</span> },
+                ],
+              }))}
+              rowsPerPage={20}
+              isLoading={isLoading}
+              emptyView={
+                <p className="text-center text-gray-500 py-8">
+                  No worklogs found for the selected date range. Try adjusting the dates and clicking &quot;Search&quot;.
+                </p>
+              }
+            />
           </ModalBody>
         </Modal>
       )}

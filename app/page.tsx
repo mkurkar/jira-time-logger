@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import Button from '@atlaskit/button/new';
+import { useState, useCallback } from 'react';
+import Tabs, { Tab, TabList } from '@atlaskit/tabs';
 import WeeklyGrid from '@/components/WeeklyGrid';
 import CalendarView from '@/components/calendar/CalendarView';
 import ProjectSelector from '@/components/ProjectSelector';
@@ -9,9 +9,15 @@ import { useProjects } from '@/hooks/useProjects';
 
 type ViewMode = 'grid' | 'calendar';
 
+const VIEW_MODES: ViewMode[] = ['grid', 'calendar'];
+
 export default function Home() {
   const [activeView, setActiveView] = useState<ViewMode>('grid');
   const { projects, selectedProject, setSelectedProject, isLoading: isLoadingProjects } = useProjects();
+
+  const handleTabChange = useCallback((index: number) => {
+    setActiveView(VIEW_MODES[index]);
+  }, []);
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-7xl">
@@ -34,20 +40,16 @@ export default function Home() {
               isLoading={isLoadingProjects}
             />
             {/* View toggle tabs */}
-            <div className="flex rounded-lg overflow-hidden">
-              <Button
-                onClick={() => setActiveView('grid')}
-                appearance={activeView === 'grid' ? 'primary' : 'default'}
-              >
-                Weekly Grid
-              </Button>
-              <Button
-                onClick={() => setActiveView('calendar')}
-                appearance={activeView === 'calendar' ? 'primary' : 'default'}
-              >
-                Calendar
-              </Button>
-            </div>
+            <Tabs
+              selected={VIEW_MODES.indexOf(activeView)}
+              onChange={handleTabChange}
+              id="view-tabs"
+            >
+              <TabList>
+                <Tab>Weekly Grid</Tab>
+                <Tab>Calendar</Tab>
+              </TabList>
+            </Tabs>
           </div>
         </div>
       </div>

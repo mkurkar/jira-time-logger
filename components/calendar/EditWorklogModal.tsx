@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import Button from '@atlaskit/button/new';
 import Textfield from '@atlaskit/textfield';
+import TextArea from '@atlaskit/textarea';
 import Modal, { ModalBody, ModalFooter, ModalHeader, ModalTitle, ModalTransition } from '@atlaskit/modal-dialog';
 import type { CalendarEvent } from '@/types/calendar';
 
@@ -147,12 +148,12 @@ export default function EditWorklogModal({ isOpen, calendarEvent, onClose, onSav
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Comment (optional)</label>
-                <textarea
+                <TextArea
                   value={comment}
-                  onChange={(e) => setComment(e.target.value)}
-                  rows={2}
+                  onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setComment(e.target.value)}
+                  minimumRows={2}
                   placeholder="Add a note..."
-                  className="w-full px-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                  resize="none"
                 />
               </div>
             </div>
