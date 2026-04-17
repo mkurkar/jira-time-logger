@@ -1,5 +1,7 @@
 'use client';
 
+import { IconButton } from '@atlaskit/button/new';
+import CrossIcon from '@atlaskit/icon/core/cross';
 import DayCell from '@/components/DayCell';
 import { formatHours } from '@/lib/worklog-aggregator';
 import type { GridRow, GridCell, CellMutationState } from '@/types/timesheet';
@@ -23,13 +25,13 @@ export default function TimesheetRow({ row, onRemove, onSaveCell, getCellState }
               {row.issue.fields.summary}
             </p>
           </div>
-          <button
+          <IconButton
+            icon={CrossIcon}
+            label="Remove issue"
             onClick={() => onRemove(row.issue.key)}
-            className="ml-auto text-gray-400 hover:text-red-500 text-xs flex-shrink-0"
-            title="Remove issue"
-          >
-            ✕
-          </button>
+            appearance="subtle"
+            spacing="compact"
+          />
         </div>
       </td>
       

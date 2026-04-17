@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { format } from 'date-fns';
+import Button from '@atlaskit/button/new';
 import type { CalendarEvent } from '@/types/calendar';
 
 interface EditWorklogModalProps {
@@ -159,20 +160,21 @@ export default function EditWorklogModal({ isOpen, calendarEvent, onClose, onSav
         </div>
 
         <div className="flex justify-end gap-2 mt-5">
-          <button
+          <Button
             onClick={onClose}
-            className="px-4 py-2 text-sm text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200"
-            disabled={isSaving}
+            appearance="subtle"
+            isDisabled={isSaving}
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={handleSave}
-            className="px-4 py-2 text-sm text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:opacity-50"
-            disabled={isSaving}
+            appearance="primary"
+            isDisabled={isSaving}
+            isLoading={isSaving}
           >
-            {isSaving ? 'Saving...' : 'Save Changes'}
-          </button>
+            Save Changes
+          </Button>
         </div>
       </div>
     </div>

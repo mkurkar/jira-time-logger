@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import Button from '@atlaskit/button/new';
 import WeekNavigator from '@/components/WeekNavigator';
 import TimesheetRow from '@/components/TimesheetRow';
 import GrandTotal from '@/components/GrandTotal';
@@ -176,18 +177,18 @@ export default function WeeklyGrid({ projectKey }: WeeklyGridProps) {
 
       {/* Toolbar */}
       <div className="flex items-center gap-3 mb-4">
-        <button
+        <Button
           onClick={() => setShowBulkEntry(true)}
-          className="px-3 py-1.5 text-sm bg-indigo-600 text-white rounded hover:bg-indigo-700"
+          appearance="primary"
         >
           Bulk Entry
-        </button>
-        <button
+        </Button>
+        <Button
           onClick={() => setShowHistory(true)}
-          className="px-3 py-1.5 text-sm bg-gray-600 text-white rounded hover:bg-gray-700"
+          appearance="default"
         >
           View History
-        </button>
+        </Button>
       </div>
 
       {/* Error state */}

@@ -1,5 +1,8 @@
 'use client';
 
+import Button, { IconButton } from '@atlaskit/button/new';
+import ChevronLeftIcon from '@atlaskit/icon/core/chevron-left';
+import ChevronRightIcon from '@atlaskit/icon/core/chevron-right';
 import { getWeekLabel } from '@/lib/date-utils';
 import type { WeekRange } from '@/types/timesheet';
 
@@ -14,24 +17,24 @@ export default function WeekNavigator({ weekRange, onPrevious, onNext, onToday }
   return (
     <div className="flex items-center justify-between mb-4">
       <div className="flex items-center gap-2">
-        <button
+        <IconButton
+          icon={ChevronLeftIcon}
+          label="Previous week"
           onClick={onPrevious}
-          className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-        >
-          ← Prev
-        </button>
-        <button
+          appearance="subtle"
+        />
+        <Button
           onClick={onToday}
-          className="px-3 py-1.5 text-sm bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          appearance="primary"
         >
           This Week
-        </button>
-        <button
+        </Button>
+        <IconButton
+          icon={ChevronRightIcon}
+          label="Next week"
           onClick={onNext}
-          className="px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 transition-colors"
-        >
-          Next →
-        </button>
+          appearance="subtle"
+        />
       </div>
       <h2 className="text-lg font-semibold text-gray-800">
         {getWeekLabel(weekRange.start, weekRange.end)}

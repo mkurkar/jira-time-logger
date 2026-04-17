@@ -1,6 +1,9 @@
 'use client';
 
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { IconButton } from '@atlaskit/button/new';
+import ChevronLeftIcon from '@atlaskit/icon/core/chevron-left';
+import ChevronRightIcon from '@atlaskit/icon/core/chevron-right';
 import type { JiraIssue } from '@/src/types/jira';
 import IssueSidebarItem from './IssueSidebarItem';
 
@@ -60,15 +63,13 @@ export default function IssueSidebar({
   if (isCollapsed) {
     return (
       <div className="flex-shrink-0 w-8 border-l border-gray-200 bg-gray-50 flex flex-col items-center pt-2">
-        <button
+        <IconButton
+          icon={ChevronLeftIcon}
+          label="Expand issue sidebar"
           onClick={onToggleCollapsed}
-          className="p-1 rounded hover:bg-gray-200 text-gray-500"
-          title="Expand issue sidebar"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
+          appearance="subtle"
+          spacing="compact"
+        />
         <div className="mt-4 -rotate-90 whitespace-nowrap text-[10px] text-gray-400 font-medium tracking-wider uppercase">
           Issues
         </div>
@@ -81,15 +82,13 @@ export default function IssueSidebar({
       {/* Header */}
       <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 bg-gray-50">
         <span className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Issues</span>
-        <button
+        <IconButton
+          icon={ChevronRightIcon}
+          label="Collapse sidebar"
           onClick={onToggleCollapsed}
-          className="p-1 rounded hover:bg-gray-200 text-gray-500"
-          title="Collapse sidebar"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
-        </button>
+          appearance="subtle"
+          spacing="compact"
+        />
       </div>
 
       {/* Search input */}

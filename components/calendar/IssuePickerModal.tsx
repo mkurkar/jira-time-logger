@@ -1,6 +1,9 @@
 'use client';
 
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { IconButton } from '@atlaskit/button/new';
+import CrossIcon from '@atlaskit/icon/core/cross';
+import SearchIcon from '@atlaskit/icon/core/search';
 import type { JiraIssue } from '@/src/types/jira';
 
 interface IssuePickerModalProps {
@@ -118,28 +121,21 @@ export default function IssuePickerModal({
         {/* Header */}
         <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
           <h2 className="text-sm font-semibold text-gray-800">Select Issue</h2>
-          <button
+          <IconButton
+            icon={CrossIcon}
+            label="Close"
             onClick={onClose}
-            className="p-1 rounded hover:bg-gray-100 text-gray-400 hover:text-gray-600"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
+            appearance="subtle"
+            spacing="compact"
+          />
         </div>
 
         {/* Search */}
         <div className="px-4 py-2 border-b border-gray-100">
           <div className="relative">
-            <svg
-              className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-gray-400"
-              fill="none"
-              viewBox="0 0 24 24"
-              stroke="currentColor"
-              strokeWidth={2}
-            >
-              <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-            </svg>
+            <span className="absolute left-2.5 top-1/2 -translate-y-1/2">
+              <SearchIcon label="" size="small" />
+            </span>
             <input
               ref={inputRef}
               type="text"

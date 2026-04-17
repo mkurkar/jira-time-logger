@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
+import Button, { IconButton } from '@atlaskit/button/new';
+import CrossIcon from '@atlaskit/icon/core/cross';
 import { formatDateISO } from '@/lib/date-utils';
 import { formatHours } from '@/lib/worklog-aggregator';
 import { adfToText } from '@/lib/adf-helpers';
@@ -95,9 +97,12 @@ export default function HistoricalLogViewer({ isOpen, onClose, savedIssueKeys }:
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <h2 className="text-lg font-semibold text-gray-900">Historical Work Logs</h2>
-          <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-xl">
-            ✕
-          </button>
+          <IconButton
+            icon={CrossIcon}
+            label="Close"
+            onClick={onClose}
+            appearance="subtle"
+          />
         </div>
 
         {/* Date range controls */}
@@ -120,13 +125,14 @@ export default function HistoricalLogViewer({ isOpen, onClose, savedIssueKeys }:
               className="ml-2 px-3 py-1.5 border rounded text-sm"
             />
           </label>
-          <button
+          <Button
             onClick={() => fetchWorklogs()}
-            disabled={isLoading}
-            className="px-4 py-1.5 text-sm bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
+            isDisabled={isLoading}
+            isLoading={isLoading}
+            appearance="primary"
           >
-            {isLoading ? 'Loading...' : 'Search'}
-          </button>
+            Search
+          </Button>
           {worklogs.length > 0 && (
             <span className="ml-auto text-sm text-gray-500">
               {worklogs.length} entries &middot; {formatHours(Math.round(totalHours * 10) / 10)} total

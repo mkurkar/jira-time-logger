@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Button from '@atlaskit/button/new';
 import WeeklyGrid from '@/components/WeeklyGrid';
 import CalendarView from '@/components/calendar/CalendarView';
 import ProjectSelector from '@/components/ProjectSelector';
@@ -33,27 +34,19 @@ export default function Home() {
               isLoading={isLoadingProjects}
             />
             {/* View toggle tabs */}
-            <div className="flex rounded-lg border border-gray-300 overflow-hidden shadow-sm">
-              <button
+            <div className="flex rounded-lg overflow-hidden">
+              <Button
                 onClick={() => setActiveView('grid')}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  activeView === 'grid'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-600 hover:bg-gray-50'
-                }`}
+                appearance={activeView === 'grid' ? 'primary' : 'default'}
               >
                 Weekly Grid
-              </button>
-              <button
+              </Button>
+              <Button
                 onClick={() => setActiveView('calendar')}
-                className={`px-4 py-2 text-sm font-medium transition-colors ${
-                  activeView === 'calendar'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-600 hover:bg-gray-50'
-                }`}
+                appearance={activeView === 'calendar' ? 'primary' : 'default'}
               >
                 Calendar
-              </button>
+              </Button>
             </div>
           </div>
         </div>

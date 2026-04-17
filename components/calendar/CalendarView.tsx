@@ -26,6 +26,7 @@ import IssuePickerModal from './IssuePickerModal';
 import EditWorklogModal from './EditWorklogModal';
 import DropZoneOverlay from './DropZoneOverlay';
 import { useIssueDragDrop } from '@/hooks/useIssueDragDrop';
+import Button from '@atlaskit/button/new';
 
 const SETTINGS_VERSION = 2;
 
@@ -502,9 +503,9 @@ export default function CalendarView({
       {errorMessage && (
         <div className="px-4 py-2 bg-red-50 border-b border-red-200 flex items-center justify-between">
           <span className="text-sm text-red-700">{errorMessage}</span>
-          <button onClick={() => setErrorMessage(null)} className="text-red-500 hover:text-red-700 text-sm font-medium">
+          <Button appearance="subtle" spacing="compact" onClick={() => setErrorMessage(null)}>
             Dismiss
-          </button>
+          </Button>
         </div>
       )}
 

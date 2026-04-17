@@ -13,6 +13,12 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@atlaskit/button": "^23.11.3",
+    "@atlaskit/css-reset": "^7.4.5",
+    "@atlaskit/icon": "^34.2.0",
+    "@atlaskit/primitives": "^19.0.0",
+    "@atlaskit/theme": "^23.1.0",
+    "@atlaskit/tokens": "^13.0.0",
     "@tanstack/react-query": "^5.96.2",
     "date-fns": "^3",
     "dotenv": "^16.4.7",

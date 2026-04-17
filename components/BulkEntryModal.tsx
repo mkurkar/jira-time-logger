@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import Button, { IconButton } from '@atlaskit/button/new';
+import CrossIcon from '@atlaskit/icon/core/cross';
 import { formatDateISO } from '@/lib/date-utils';
 
 interface BulkEntry {
@@ -118,13 +120,13 @@ export default function BulkEntryModal({ isOpen, onClose, onComplete }: BulkEntr
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b">
           <h2 className="text-lg font-semibold text-gray-900">Bulk Time Entry</h2>
-          <button
+          <IconButton
+            icon={CrossIcon}
+            label="Close"
             onClick={handleClose}
-            disabled={isSubmitting}
-            className="text-gray-400 hover:text-gray-600 text-xl"
-          >
-            ✕
-          </button>
+            isDisabled={isSubmitting}
+            appearance="subtle"
+          />
         </div>
 
         {/* Body */}
@@ -169,42 +171,45 @@ export default function BulkEntryModal({ isOpen, onClose, onComplete }: BulkEntr
                     <span title={entry.error} className="cursor-help">{'\u274C'}</span>
                   )}
                 </span>
-                <button
+                <IconButton
+                  icon={CrossIcon}
+                  label="Remove row"
                   onClick={() => removeRow(entry.id)}
-                  disabled={isSubmitting || entries.length === 1}
-                  className="text-gray-400 hover:text-red-500 disabled:opacity-30"
-                >
-                  ✕
-                </button>
+                  isDisabled={isSubmitting || entries.length === 1}
+                  appearance="subtle"
+                  spacing="compact"
+                />
               </div>
             ))}
           </div>
 
-          <button
+          <Button
             onClick={addRow}
-            disabled={isSubmitting}
-            className="mt-3 text-sm text-blue-600 hover:text-blue-800 disabled:opacity-50"
+            isDisabled={isSubmitting}
+            appearance="subtle"
+            spacing="compact"
           >
             + Add another entry
-          </button>
+          </Button>
         </div>
 
         {/* Footer */}
         <div className="flex items-center justify-end gap-3 px-6 py-4 border-t">
-          <button
+          <Button
             onClick={handleClose}
-            disabled={isSubmitting}
-            className="px-4 py-2 text-sm text-gray-600 hover:text-gray-800 disabled:opacity-50"
+            isDisabled={isSubmitting}
+            appearance="subtle"
           >
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
             onClick={submitAll}
-            disabled={isSubmitting}
-            className="px-4 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50"
+            isDisabled={isSubmitting}
+            isLoading={isSubmitting}
+            appearance="primary"
           >
             {isSubmitting ? `Saving ${progress.done}/${progress.total}...` : 'Submit All'}
-          </button>
+          </Button>
         </div>
       </div>
     </div>
