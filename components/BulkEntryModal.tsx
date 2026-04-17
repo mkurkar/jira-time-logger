@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { token } from '@atlaskit/tokens';
 import Button, { IconButton } from '@atlaskit/button/new';
 import CrossIcon from '@atlaskit/icon/core/cross';
 import Textfield from '@atlaskit/textfield';
@@ -130,7 +131,13 @@ export default function BulkEntryModal({ isOpen, onClose, onComplete }: BulkEntr
           </ModalHeader>
           <ModalBody>
             {isSubmitting && (
-              <div className="mb-4 p-3 bg-blue-50 border border-blue-200 rounded text-blue-700 text-sm">
+              <div className="mb-4 p-3 rounded text-sm" style={{
+                backgroundColor: token('color.background.information'),
+                borderWidth: 1,
+                borderStyle: 'solid',
+                borderColor: token('color.border.information'),
+                color: token('color.text.information'),
+              }}>
                 Saving... {progress.done}/{progress.total} entries
               </div>
             )}

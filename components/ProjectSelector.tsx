@@ -1,5 +1,6 @@
 'use client';
 
+import { token } from '@atlaskit/tokens';
 import Select from '@atlaskit/select';
 import Spinner from '@atlaskit/spinner';
 import type { JiraProject } from '@/src/types/jira';
@@ -21,14 +22,14 @@ export default function ProjectSelector({
     return (
       <div className="flex items-center gap-2">
         <Spinner size="small" />
-        <span className="text-sm text-gray-500">Loading projects...</span>
+        <span className="text-sm" style={{ color: token('color.text.subtlest') }}>Loading projects...</span>
       </div>
     );
   }
 
   if (projects.length === 0) {
     return (
-      <span className="text-sm text-gray-400">No projects available</span>
+      <span className="text-sm" style={{ color: token('color.text.disabled') }}>No projects available</span>
     );
   }
 

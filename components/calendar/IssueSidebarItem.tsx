@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import { token } from '@atlaskit/tokens';
 import type { JiraIssue } from '@/src/types/jira';
 
 interface IssueSidebarItemProps {
@@ -9,6 +10,8 @@ interface IssueSidebarItemProps {
 }
 
 export default function IssueSidebarItem({ issue, isRecentlyUsed = false }: IssueSidebarItemProps) {
+  const [isHovered, setIsHovered] = useState(false);
+
   const handleDragStart = (e: React.DragEvent) => {
     e.dataTransfer.setData('application/json', JSON.stringify({
       issueKey: issue.key,
@@ -30,18 +33,24 @@ export default function IssueSidebarItem({ issue, isRecentlyUsed = false }: Issu
     <div
       draggable
       onDragStart={handleDragStart}
-      className={`
-        px-3 py-2 cursor-grab active:cursor-grabbing
-        border-b border-gray-100 hover:bg-blue-50 transition-colors
-        ${isRecentlyUsed ? 'bg-amber-50/50' : ''}
-      `}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="px-3 py-2 cursor-grab active:cursor-grabbing transition-colors"
+      style={{
+        borderBottom: `1px solid ${token('color.border')}`,
+        backgroundColor: isHovered
+          ? token('color.background.neutral.subtle.hovered')
+          : isRecentlyUsed
+            ? token('color.background.warning')
+            : undefined,
+      }}
     >
       <div className="flex items-center gap-2">
-        <span className="text-xs font-semibold text-blue-600 whitespace-nowrap">{issue.key}</span>
-        <span className="text-xs text-gray-600 truncate">{issue.fields.summary}</span>
+        <span className="text-xs font-semibold whitespace-nowrap" style={{ color: token('color.link') }}>{issue.key}</span>
+        <span className="text-xs truncate" style={{ color: token('color.text.subtle') }}>{issue.fields.summary}</span>
       </div>
       {issue.fields.status && (
-        <div className="mt-0.5 text-[10px] text-gray-400">{issue.fields.status.name}</div>
+        <div className="mt-0.5 text-[10px]" style={{ color: token('color.text.disabled') }}>{issue.fields.status.name}</div>
       )}
     </div>
   );

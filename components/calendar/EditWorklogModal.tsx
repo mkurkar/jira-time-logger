@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { token } from '@atlaskit/tokens';
 import { format } from 'date-fns';
 import Button from '@atlaskit/button/new';
 import Textfield from '@atlaskit/textfield';
@@ -106,13 +107,17 @@ export default function EditWorklogModal({ isOpen, calendarEvent, onClose, onSav
             <ModalTitle>Edit Worklog</ModalTitle>
           </ModalHeader>
           <ModalBody>
-            <p className="text-sm text-gray-500 mb-4">
-              <span className="font-medium text-blue-600">{calendarEvent!.issueKey}</span>{' '}
+            <p className="text-sm mb-4" style={{ color: token('color.text.subtlest') }}>
+              <span className="font-medium" style={{ color: token('color.link') }}>{calendarEvent!.issueKey}</span>{' '}
               {calendarEvent!.issueSummary}
             </p>
 
             {error && (
-              <div className="mb-3 p-2 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+              <div className="mb-3 p-2 rounded text-sm" style={{
+                backgroundColor: token('color.background.danger'),
+                border: `1px solid ${token('color.border.danger')}`,
+                color: token('color.text.danger'),
+              }}>
                 {error}
               </div>
             )}
@@ -120,7 +125,7 @@ export default function EditWorklogModal({ isOpen, calendarEvent, onClose, onSav
             <div className="space-y-3">
               <div className="flex gap-3">
                 <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Date</label>
+                  <label className="block text-sm font-medium mb-1" style={{ color: token('color.text') }}>Date</label>
                   <Textfield
                     type="date"
                     value={date}
@@ -128,7 +133,7 @@ export default function EditWorklogModal({ isOpen, calendarEvent, onClose, onSav
                   />
                 </div>
                 <div className="flex-1">
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Start Time</label>
+                  <label className="block text-sm font-medium mb-1" style={{ color: token('color.text') }}>Start Time</label>
                   <Textfield
                     type="time"
                     value={time}
@@ -138,7 +143,7 @@ export default function EditWorklogModal({ isOpen, calendarEvent, onClose, onSav
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Duration (hours)</label>
+                <label className="block text-sm font-medium mb-1" style={{ color: token('color.text') }}>Duration (hours)</label>
                 <Textfield
                   type="number"
                   value={hours}
@@ -147,7 +152,7 @@ export default function EditWorklogModal({ isOpen, calendarEvent, onClose, onSav
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Comment (optional)</label>
+                <label className="block text-sm font-medium mb-1" style={{ color: token('color.text') }}>Comment (optional)</label>
                 <TextArea
                   value={comment}
                   onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setComment(e.target.value)}

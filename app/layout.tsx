@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { token } from '@atlaskit/tokens';
 import '@atlaskit/css-reset';
 import Providers from './providers';
 import './globals.css';
@@ -15,7 +16,13 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="bg-gray-50 text-gray-900 antialiased">
+      <body
+        className="antialiased"
+        style={{
+          backgroundColor: token('elevation.surface.sunken'),
+          color: token('color.text'),
+        }}
+      >
         <Providers>
           <main className="min-h-screen">
             {children}

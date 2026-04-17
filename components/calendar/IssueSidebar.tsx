@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { token } from '@atlaskit/tokens';
 import { IconButton } from '@atlaskit/button/new';
 import ChevronLeftIcon from '@atlaskit/icon/core/chevron-left';
 import ChevronRightIcon from '@atlaskit/icon/core/chevron-right';
@@ -63,7 +64,10 @@ export default function IssueSidebar({
 
   if (isCollapsed) {
     return (
-      <div className="flex-shrink-0 w-8 border-l border-gray-200 bg-gray-50 flex flex-col items-center pt-2">
+      <div className="flex-shrink-0 w-8 flex flex-col items-center pt-2" style={{
+        borderLeft: `1px solid ${token('color.border')}`,
+        backgroundColor: token('color.background.neutral'),
+      }}>
         <IconButton
           icon={ChevronLeftIcon}
           label="Expand issue sidebar"
@@ -71,7 +75,7 @@ export default function IssueSidebar({
           appearance="subtle"
           spacing="compact"
         />
-        <div className="mt-4 -rotate-90 whitespace-nowrap text-[10px] text-gray-400 font-medium tracking-wider uppercase">
+        <div className="mt-4 -rotate-90 whitespace-nowrap text-[10px] font-medium tracking-wider uppercase" style={{ color: token('color.text.disabled') }}>
           Issues
         </div>
       </div>
@@ -79,10 +83,16 @@ export default function IssueSidebar({
   }
 
   return (
-    <div className="flex-shrink-0 w-64 border-l border-gray-200 bg-white flex flex-col">
+    <div className="flex-shrink-0 w-64 flex flex-col" style={{
+      borderLeft: `1px solid ${token('color.border')}`,
+      backgroundColor: token('elevation.surface'),
+    }}>
       {/* Header */}
-      <div className="flex items-center justify-between px-3 py-2 border-b border-gray-200 bg-gray-50">
-        <span className="text-xs font-semibold text-gray-700 uppercase tracking-wider">Issues</span>
+      <div className="flex items-center justify-between px-3 py-2" style={{
+        borderBottom: `1px solid ${token('color.border')}`,
+        backgroundColor: token('color.background.neutral'),
+      }}>
+        <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: token('color.text') }}>Issues</span>
         <IconButton
           icon={ChevronRightIcon}
           label="Collapse sidebar"
@@ -93,7 +103,7 @@ export default function IssueSidebar({
       </div>
 
       {/* Search input */}
-      <div className="px-3 py-2 border-b border-gray-100">
+      <div className="px-3 py-2" style={{ borderBottom: `1px solid ${token('color.border')}` }}>
         <Textfield
           value={searchTerm}
           onChange={handleSearchChange}
@@ -107,7 +117,11 @@ export default function IssueSidebar({
         {/* Recently used section */}
         {recentIssues.length > 0 && (
           <>
-            <div className="px-3 py-1.5 bg-amber-50/80 text-[10px] font-semibold text-amber-700 uppercase tracking-wider border-b border-amber-100">
+            <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider" style={{
+              backgroundColor: token('color.background.warning'),
+              color: token('color.text.warning'),
+              borderBottom: `1px solid ${token('color.border.warning')}`,
+            }}>
               Recently Used
             </div>
             {recentIssues.map((issue) => (
@@ -120,7 +134,11 @@ export default function IssueSidebar({
         {otherIssues.length > 0 && (
           <>
             {recentIssues.length > 0 && (
-              <div className="px-3 py-1.5 bg-gray-50 text-[10px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100">
+              <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider" style={{
+                backgroundColor: token('color.background.neutral'),
+                color: token('color.text.subtlest'),
+                borderBottom: `1px solid ${token('color.border')}`,
+              }}>
                 All Issues
               </div>
             )}
@@ -132,15 +150,18 @@ export default function IssueSidebar({
 
         {/* Empty state */}
         {filteredIssues.length === 0 && (
-          <div className="px-3 py-8 text-center text-xs text-gray-400">
+          <div className="px-3 py-8 text-center text-xs" style={{ color: token('color.text.disabled') }}>
             {debouncedSearch.trim() ? 'No matching issues' : 'No issues loaded'}
           </div>
         )}
       </div>
 
       {/* Footer with drag hint */}
-      <div className="px-3 py-2 border-t border-gray-200 bg-gray-50">
-        <p className="text-[10px] text-gray-400 text-center">
+      <div className="px-3 py-2" style={{
+        borderTop: `1px solid ${token('color.border')}`,
+        backgroundColor: token('color.background.neutral'),
+      }}>
+        <p className="text-[10px] text-center" style={{ color: token('color.text.disabled') }}>
           Drag an issue onto the calendar to log time
         </p>
       </div>

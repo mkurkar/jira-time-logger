@@ -3,6 +3,7 @@
 import { useState, useCallback, useRef, useEffect } from 'react';
 import Textfield from '@atlaskit/textfield';
 import Spinner from '@atlaskit/spinner';
+import { token } from '@atlaskit/tokens';
 import type { JiraIssue } from '@/src/types/jira';
 
 interface IssueSearchProps {
@@ -93,15 +94,25 @@ export default function IssueSearch({ onAddIssue, existingKeys, projectKey }: Is
       </div>
 
       {showDropdown && results.length > 0 && (
-        <ul className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg max-h-60 overflow-auto">
+        <ul
+          className="absolute z-10 w-full mt-1 rounded-md max-h-60 overflow-auto"
+          style={{
+            backgroundColor: token('color.background.input'),
+            border: `1px solid ${token('color.border')}`,
+            boxShadow: token('elevation.shadow.overlay'),
+          }}
+        >
           {results.map((issue) => (
             <li key={issue.id}>
               <button
                 onClick={() => handleSelect(issue)}
-                className="w-full px-3 py-2 text-left hover:bg-blue-50 transition-colors flex items-center gap-2"
+                className="w-full px-3 py-2 text-left transition-colors flex items-center gap-2"
+                style={{ color: token('color.text') }}
+                onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = token('color.background.neutral.subtle.hovered'))}
+                onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
               >
-                <span className="text-sm font-medium text-blue-600">{issue.key}</span>
-                <span className="text-sm text-gray-600 truncate">{issue.fields.summary}</span>
+                <span className="text-sm font-medium" style={{ color: token('color.link') }}>{issue.key}</span>
+                <span className="text-sm truncate" style={{ color: token('color.text.subtle') }}>{issue.fields.summary}</span>
               </button>
             </li>
           ))}

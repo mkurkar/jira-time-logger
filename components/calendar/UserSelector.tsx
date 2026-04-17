@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
+import { token } from '@atlaskit/tokens';
 import Button from '@atlaskit/button/new';
 import PeopleGroupIcon from '@atlaskit/icon/core/people-group';
 import ChevronDownIcon from '@atlaskit/icon/core/chevron-down';
@@ -64,23 +65,33 @@ export default function UserSelector({
       </Button>
 
       {isOpen && (
-        <div className="absolute right-0 top-full mt-1 w-64 bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+        <div className="absolute right-0 top-full mt-1 w-64 rounded-lg z-50" style={{
+          backgroundColor: token('elevation.surface.overlay'),
+          border: `1px solid ${token('color.border')}`,
+          boxShadow: token('elevation.shadow.overlay'),
+        }}>
           {/* Header with Select All / Deselect All */}
-          <div className="flex items-center justify-between px-3 py-2 border-b border-gray-100">
-            <span className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+          <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: `1px solid ${token('color.border')}` }}>
+            <span className="text-xs font-semibold uppercase tracking-wide" style={{ color: token('color.text.subtlest') }}>
               Team Members
             </span>
             <div className="flex gap-1">
               <button
                 onClick={onSelectAll}
-                className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                className="text-xs font-medium"
+                style={{ color: token('color.link') }}
+                onMouseEnter={(e) => { e.currentTarget.style.textDecoration = 'underline'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none'; }}
               >
                 All
               </button>
-              <span className="text-xs text-gray-300">|</span>
+              <span className="text-xs" style={{ color: token('color.text.disabled') }}>|</span>
               <button
                 onClick={onDeselectAll}
-                className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                className="text-xs font-medium"
+                style={{ color: token('color.link') }}
+                onMouseEnter={(e) => { e.currentTarget.style.textDecoration = 'underline'; }}
+                onMouseLeave={(e) => { e.currentTarget.style.textDecoration = 'none'; }}
               >
                 None
               </button>
@@ -90,7 +101,7 @@ export default function UserSelector({
           {/* Member list */}
           <div className="max-h-60 overflow-y-auto py-1">
             {teamMembers.length === 0 && (
-              <div className="px-3 py-2 text-sm text-gray-400">
+              <div className="px-3 py-2 text-sm" style={{ color: token('color.text.disabled') }}>
                 No team members found
               </div>
             )}
@@ -100,7 +111,9 @@ export default function UserSelector({
                 <button
                   key={member.accountId}
                   onClick={() => onToggleUser(member.accountId)}
-                  className="flex items-center gap-2 w-full px-3 py-1.5 hover:bg-gray-50 text-left"
+                  className="flex items-center gap-2 w-full px-3 py-1.5 text-left"
+                  onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = token('color.background.neutral.subtle.hovered'); }}
+                  onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
                 >
                   {/* Color indicator */}
                   <span
@@ -108,16 +121,17 @@ export default function UserSelector({
                     style={{ backgroundColor: member.color }}
                   />
                   {/* Display name */}
-                  <span className="text-sm text-gray-700 truncate flex-1">
+                  <span className="text-sm truncate flex-1" style={{ color: token('color.text') }}>
                     {member.displayName}
                   </span>
                   {/* Checkbox */}
                   <span
-                    className={`w-4 h-4 rounded border flex-shrink-0 flex items-center justify-center ${
-                      isChecked
-                        ? 'bg-blue-600 border-blue-600'
-                        : 'border-gray-300 bg-white'
-                    }`}
+                    className="w-4 h-4 rounded flex-shrink-0 flex items-center justify-center"
+                    style={{
+                      backgroundColor: isChecked ? token('color.background.brand.bold') : token('elevation.surface'),
+                      border: `1px solid ${isChecked ? token('color.background.brand.bold') : token('color.border.bold')}`,
+                      color: isChecked ? token('color.text.inverse') : undefined,
+                    }}
                   >
                     {isChecked && (
                       <CheckMarkIcon label="" size="small" color="currentColor" />

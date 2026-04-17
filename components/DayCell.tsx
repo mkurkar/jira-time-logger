@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { token } from '@atlaskit/tokens';
 import { formatHours } from '@/lib/worklog-aggregator';
 import type { GridCell, CellMutationState } from '@/types/timesheet';
 
@@ -82,22 +83,33 @@ export default function DayCell({ cell, mutationState, onSave }: DayCellProps) {
           onChange={(e) => setEditValue(e.target.value)}
           onKeyDown={handleKeyDown}
           onBlur={commitEdit}
-          className="w-full px-2 py-1 text-center text-sm border-2 border-blue-500 rounded outline-none bg-blue-50"
+          className="w-full px-2 py-1 text-center text-sm rounded outline-none"
+          style={{
+            border: `2px solid ${token('color.border.focused')}`,
+            backgroundColor: token('color.background.selected'),
+            color: token('color.text'),
+          }}
           placeholder="0h"
         />
       </td>
     );
   }
 
+  const cellStyle: React.CSSProperties = isSaving
+    ? { backgroundColor: token('color.background.warning'), color: token('color.text.warning') }
+    : isError
+    ? { backgroundColor: token('color.background.danger'), color: token('color.text.danger') }
+    : hasTime
+    ? { color: token('color.text'), fontWeight: 500 }
+    : { color: token('color.text.subtlest') };
+
   return (
     <td
       onClick={startEditing}
-      className={`px-3 py-2 text-center text-sm tabular-nums cursor-pointer transition-colors
-        ${isSaving ? 'bg-yellow-50 text-yellow-600 animate-pulse' : ''}
-        ${isError ? 'bg-red-50 text-red-600' : ''}
-        ${!isSaving && !isError && hasTime ? 'text-gray-900 font-medium hover:bg-blue-50' : ''}
-        ${!isSaving && !isError && !hasTime ? 'text-gray-400 hover:bg-blue-50' : ''}
-      `}
+      className={`px-3 py-2 text-center text-sm tabular-nums cursor-pointer transition-colors ${isSaving ? 'animate-pulse' : ''}`}
+      style={cellStyle}
+      onMouseEnter={(e) => { if (!isSaving && !isError) e.currentTarget.style.backgroundColor = token('color.background.neutral.subtle.hovered'); }}
+      onMouseLeave={(e) => { if (!isSaving && !isError) e.currentTarget.style.backgroundColor = ''; }}
       title={isError ? `Error: ${mutationState.error}` : isSaving ? 'Saving...' : 'Click to edit'}
     >
       {isSaving ? '⏳' : formatHours(cell.hours)}

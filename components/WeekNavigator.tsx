@@ -3,6 +3,7 @@
 import Button, { IconButton } from '@atlaskit/button/new';
 import ChevronLeftIcon from '@atlaskit/icon/core/chevron-left';
 import ChevronRightIcon from '@atlaskit/icon/core/chevron-right';
+import { token } from '@atlaskit/tokens';
 import { getWeekLabel } from '@/lib/date-utils';
 import type { WeekRange } from '@/types/timesheet';
 
@@ -36,7 +37,7 @@ export default function WeekNavigator({ weekRange, onPrevious, onNext, onToday }
           appearance="subtle"
         />
       </div>
-      <h2 className="text-lg font-semibold text-gray-800">
+      <h2 className="text-lg font-semibold" style={{ color: token('color.text') }}>
         {getWeekLabel(weekRange.start, weekRange.end)}
       </h2>
     </div>

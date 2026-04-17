@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef, useEffect, useCallback, useState, useMemo } from 'react';
+import { token } from '@atlaskit/tokens';
 import { useQuery } from '@tanstack/react-query';
 import { format, isToday, differenceInMinutes, startOfDay, parseISO, addDays } from 'date-fns';
 import type { JiraWorklog, JiraIssue } from '@/src/types/jira';
@@ -498,11 +499,17 @@ export default function CalendarView({
   }, [effectiveWorklogs]);
 
   return (
-    <div className="flex flex-col h-full bg-white rounded-lg border border-gray-200 overflow-hidden">
+    <div className="flex flex-col h-full rounded-lg overflow-hidden" style={{
+      backgroundColor: token('elevation.surface'),
+      border: `1px solid ${token('color.border')}`,
+    }}>
       {/* T014: Error toast */}
       {errorMessage && (
-        <div className="px-4 py-2 bg-red-50 border-b border-red-200 flex items-center justify-between">
-          <span className="text-sm text-red-700">{errorMessage}</span>
+        <div className="px-4 py-2 flex items-center justify-between" style={{
+          backgroundColor: token('color.background.danger'),
+          borderBottom: `1px solid ${token('color.border.danger')}`,
+        }}>
+          <span className="text-sm" style={{ color: token('color.text.danger') }}>{errorMessage}</span>
           <Button appearance="subtle" spacing="compact" onClick={() => setErrorMessage(null)}>
             Dismiss
           </Button>
@@ -511,8 +518,8 @@ export default function CalendarView({
 
       {/* Loading indicator for worklog fetching */}
       {multiUserWorklogs.isLoading && (
-        <div className="h-0.5 bg-blue-100 overflow-hidden">
-          <div className="h-full bg-blue-500 animate-pulse" style={{ width: '100%' }} />
+        <div className="h-0.5 overflow-hidden" style={{ backgroundColor: token('color.background.neutral') }}>
+          <div className="h-full animate-pulse" style={{ width: '100%', backgroundColor: token('color.background.brand.bold') }} />
         </div>
       )}
 
@@ -549,9 +556,9 @@ export default function CalendarView({
       </div>
 
       {/* T021: Daily totals row */}
-      <div className="flex border-b border-gray-200 bg-gray-50/50">
-        <div className="flex-shrink-0 border-r border-gray-200" style={{ width: TIME_AXIS_WIDTH }}>
-          <div className="px-1 py-1 text-xs text-gray-400 text-right">Total</div>
+      <div className="flex" style={{ borderBottom: `1px solid ${token('color.border')}`, backgroundColor: token('color.background.neutral.subtle') }}>
+        <div className="flex-shrink-0" style={{ width: TIME_AXIS_WIDTH, borderRight: `1px solid ${token('color.border')}` }}>
+          <div className="px-1 py-1 text-xs text-right" style={{ color: token('color.text.disabled') }}>Total</div>
         </div>
         <div
           className="flex-1 grid"
@@ -564,7 +571,8 @@ export default function CalendarView({
             return (
               <div
                 key={dateKey}
-                className="text-center py-1 text-xs font-medium text-gray-500 border-l border-gray-100 first:border-l-0"
+                className="text-center py-1 text-xs font-medium first:border-l-0"
+                style={{ color: token('color.text.subtlest'), borderLeft: `1px solid ${token('color.border')}` }}
               >
                 {totalHours}h
               </div>
@@ -575,18 +583,18 @@ export default function CalendarView({
 
       {/* T011: Per-user daily totals breakdown */}
       {multiUserMode && selectedUsers.length >= 2 && (
-        <div className="border-b border-gray-200 bg-gray-50/30">
+        <div className="border-b" style={{ borderColor: token('color.border'), backgroundColor: token('color.background.neutral.subtle') }}>
           {selectedUsers.map((user) => {
             const userTotals = userDayTotals.get(user.accountId);
             const firstName = user.displayName.split(/\s+/)[0];
             return (
               <div key={user.accountId} className="flex">
-                <div className="flex-shrink-0 border-r border-gray-200 pl-3 pr-1 py-0.5 flex items-center gap-1" style={{ width: TIME_AXIS_WIDTH }}>
+                <div className="flex-shrink-0 pl-3 pr-1 py-0.5 flex items-center gap-1" style={{ width: TIME_AXIS_WIDTH, borderRight: `1px solid ${token('color.border')}` }}>
                   <span
                     className="w-2.5 h-2.5 rounded-full flex-shrink-0"
                     style={{ backgroundColor: user.color }}
                   />
-                  <span className="text-[10px] text-gray-500 truncate">{firstName}</span>
+                  <span className="text-[10px] truncate" style={{ color: token('color.text.subtlest') }}>{firstName}</span>
                 </div>
                 <div
                   className="flex-1 grid"
@@ -599,7 +607,8 @@ export default function CalendarView({
                     return (
                       <div
                         key={dateKey}
-                        className="text-center py-0.5 text-[10px] text-gray-400 border-l border-gray-100 first:border-l-0"
+                        className="text-center py-0.5 text-[10px] first:border-l-0"
+                        style={{ color: token('color.text.disabled'), borderLeft: `1px solid ${token('color.border')}` }}
                       >
                         {hours > 0 ? `${hours}h` : ''}
                       </div>
@@ -626,11 +635,18 @@ export default function CalendarView({
           <div className="flex" style={{ minHeight: grid.totalHeight + 60 }}>
             {/* Time axis (left column) */}
             <div
-              className="sticky left-0 z-10 bg-white border-r border-gray-200 flex-shrink-0"
-              style={{ width: TIME_AXIS_WIDTH }}
+              className="sticky left-0 z-10 flex-shrink-0"
+              style={{
+                width: TIME_AXIS_WIDTH,
+                backgroundColor: token('elevation.surface'),
+                borderRight: `1px solid ${token('color.border')}`,
+              }}
             >
               {/* Empty header spacer */}
-              <div className="sticky top-0 z-20 bg-white border-b border-gray-200 py-2">
+              <div className="sticky top-0 z-20 py-2" style={{
+                backgroundColor: token('elevation.surface'),
+                borderBottom: `1px solid ${token('color.border')}`,
+              }}>
                 <div className="h-7" /> {/* Match day header height */}
               </div>
               {/* Hour labels */}
@@ -640,8 +656,8 @@ export default function CalendarView({
                   .map((slot) => (
                     <div
                       key={slot.time}
-                      className="absolute right-2 text-xs text-gray-400 -translate-y-1/2"
-                      style={{ top: slot.top }}
+                      className="absolute right-2 text-xs -translate-y-1/2"
+                      style={{ top: slot.top, color: token('color.text.disabled') }}
                     >
                       {slot.time}
                     </div>

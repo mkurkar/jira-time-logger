@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useCallback } from 'react';
+import { token } from '@atlaskit/tokens';
 import Tabs, { Tab, TabList } from '@atlaskit/tabs';
 import WeeklyGrid from '@/components/WeeklyGrid';
 import CalendarView from '@/components/calendar/CalendarView';
@@ -24,8 +25,8 @@ export default function Home() {
       <div className="mb-6">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Jira Time Logger</h1>
-            <p className="text-sm text-gray-500 mt-1">
+            <h1 className="text-2xl font-bold" style={{ color: token('color.text') }}>Jira Time Logger</h1>
+            <p className="text-sm mt-1" style={{ color: token('color.text.subtlest') }}>
               {activeView === 'grid'
                 ? 'Weekly timesheet — view your logged hours across issues'
                 : 'Calendar view — drag and drop time blocks'}

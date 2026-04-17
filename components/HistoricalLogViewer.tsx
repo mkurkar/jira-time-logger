@@ -1,10 +1,11 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
+import { token } from '@atlaskit/tokens';
 import Button, { IconButton } from '@atlaskit/button/new';
 import CrossIcon from '@atlaskit/icon/core/cross';
 import Textfield from '@atlaskit/textfield';
-import DynamicTable from '@atlaskit/dynamic-table';
+import Spinner from '@atlaskit/spinner';
 import Modal, { ModalBody, ModalHeader, ModalTitle, ModalTransition } from '@atlaskit/modal-dialog';
 import { formatDateISO } from '@/lib/date-utils';
 import { formatHours } from '@/lib/worklog-aggregator';
@@ -107,8 +108,8 @@ export default function HistoricalLogViewer({ isOpen, onClose, savedIssueKeys }:
           </ModalHeader>
           <ModalBody>
             {/* Date range controls */}
-            <div className="flex items-center gap-4 mb-4 p-3 bg-gray-50 rounded-md">
-              <label className="text-sm text-gray-600 flex items-center gap-2">
+            <div className="flex items-center gap-4 mb-4 p-3 rounded-md" style={{ backgroundColor: token('color.background.neutral') }}>
+              <label className="text-sm flex items-center gap-2" style={{ color: token('color.text.subtle') }}>
                 From:
                 <Textfield
                   type="date"
@@ -117,7 +118,7 @@ export default function HistoricalLogViewer({ isOpen, onClose, savedIssueKeys }:
                   isCompact
                 />
               </label>
-              <label className="text-sm text-gray-600 flex items-center gap-2">
+              <label className="text-sm flex items-center gap-2" style={{ color: token('color.text.subtle') }}>
                 To:
                 <Textfield
                   type="date"
@@ -135,46 +136,62 @@ export default function HistoricalLogViewer({ isOpen, onClose, savedIssueKeys }:
                 Search
               </Button>
               {worklogs.length > 0 && (
-                <span className="ml-auto text-sm text-gray-500">
+                <span className="ml-auto text-sm" style={{ color: token('color.text.subtlest') }}>
                   {worklogs.length} entries &middot; {formatHours(Math.round(totalHours * 10) / 10)} total
                 </span>
               )}
             </div>
 
             {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded text-red-700 text-sm">
+              <div className="mb-4 p-3 rounded text-sm" style={{
+                backgroundColor: token('color.background.danger'),
+                border: `1px solid ${token('color.border.danger')}`,
+                color: token('color.text.danger'),
+              }}>
                 {error}
               </div>
             )}
 
-            <DynamicTable
-              head={{
-                cells: [
-                  { key: 'issue', content: 'Issue' },
-                  { key: 'date', content: 'Date' },
-                  { key: 'time', content: 'Time' },
-                  { key: 'author', content: 'Author' },
-                  { key: 'comment', content: 'Comment' },
-                ],
-              }}
-              rows={worklogs.map((entry) => ({
-                key: `${entry.issueKey}-${entry.worklog.id}`,
-                cells: [
-                  { key: 'issue', content: <span className="text-blue-600 font-medium">{entry.issueKey}</span> },
-                  { key: 'date', content: new Date(entry.worklog.started).toLocaleDateString() },
-                  { key: 'time', content: <span className="font-medium">{entry.worklog.timeSpent}</span> },
-                  { key: 'author', content: entry.worklog.author.displayName },
-                  { key: 'comment', content: <span className="truncate max-w-[200px] block">{entry.worklog.comment ? adfToText(entry.worklog.comment) : '\u2014'}</span> },
-                ],
-              }))}
-              rowsPerPage={20}
-              isLoading={isLoading}
-              emptyView={
-                <p className="text-center text-gray-500 py-8">
-                  No worklogs found for the selected date range. Try adjusting the dates and clicking &quot;Search&quot;.
-                </p>
-              }
-            />
+            {isLoading && (
+              <div className="flex items-center justify-center py-8">
+                <Spinner size="large" />
+              </div>
+            )}
+
+            {worklogs.length === 0 && !isLoading && !error && (
+              <p className="text-center py-8" style={{ color: token('color.text.subtlest') }}>
+                No worklogs found for the selected date range. Try adjusting the dates and clicking &quot;Search&quot;.
+              </p>
+            )}
+
+            {worklogs.length > 0 && (
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b text-left" style={{ color: token('color.text.subtle') }}>
+                    <th className="pb-2 font-semibold">Issue</th>
+                    <th className="pb-2 font-semibold">Date</th>
+                    <th className="pb-2 font-semibold">Time</th>
+                    <th className="pb-2 font-semibold">Author</th>
+                    <th className="pb-2 font-semibold">Comment</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {worklogs.map((entry) => (
+                    <tr key={`${entry.issueKey}-${entry.worklog.id}`} className="border-b" style={{ borderColor: token('color.border') }}>
+                      <td className="py-2 font-medium" style={{ color: token('color.link') }}>{entry.issueKey}</td>
+                      <td className="py-2" style={{ color: token('color.text') }}>
+                        {new Date(entry.worklog.started).toLocaleDateString()}
+                      </td>
+                      <td className="py-2 font-medium" style={{ color: token('color.text') }}>{entry.worklog.timeSpent}</td>
+                      <td className="py-2" style={{ color: token('color.text.subtle') }}>{entry.worklog.author.displayName}</td>
+                      <td className="py-2 truncate max-w-[200px]" style={{ color: token('color.text.subtlest') }}>
+                        {entry.worklog.comment ? adfToText(entry.worklog.comment) : '\u2014'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
           </ModalBody>
         </Modal>
       )}

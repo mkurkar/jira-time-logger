@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { token } from '@atlaskit/tokens';
 import { format } from 'date-fns';
 import type { DayEvent } from '@/types/calendar';
 
@@ -65,9 +66,9 @@ export default function CalendarEventBlock({
       data-event={calendarEvent.id}
       className={`
         absolute select-none overflow-hidden
-        border border-white/20 shadow-sm
+        border border-white/20
         transition-shadow duration-150
-        ${isDragging ? 'opacity-90 shadow-lg z-50 cursor-grabbing' : 'cursor-grab'}
+        ${isDragging ? 'opacity-90 z-50 cursor-grabbing' : 'cursor-grab'}
         ${isResizing ? 'opacity-90 z-50' : ''}
         ${isClippedStart ? 'rounded-t-none border-t-0' : 'rounded-t-md'}
         ${isClippedEnd ? 'rounded-b-none border-b-0' : 'rounded-b-md'}
@@ -79,6 +80,7 @@ export default function CalendarEventBlock({
         width: dayEvent.width,
         backgroundColor: calendarEvent.color,
         minHeight: 20,
+        boxShadow: isDragging ? token('elevation.shadow.overlay') : token('elevation.shadow.raised'),
       }}
       onPointerDown={handlePointerDown}
       onContextMenu={handleContextMenu}

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useRef } from 'react';
+import { token } from '@atlaskit/tokens';
 import { format, isToday } from 'date-fns';
 import type { DayEvent, CalendarSlot } from '@/types/calendar';
 import CalendarEventBlock from './CalendarEventBlock';
@@ -56,17 +57,19 @@ export default function CalendarDayColumn({
     <div className="flex flex-col min-w-0">
       {/* Day header */}
       <div
-        className={`
-          sticky top-0 z-20 text-center py-2 text-sm font-medium border-b border-gray-200 bg-white
-          ${today ? 'text-blue-600' : 'text-gray-700'}
-        `}
+        className="sticky top-0 z-20 text-center py-2 text-sm font-medium"
+        style={{
+          borderBottom: `1px solid ${token('color.border')}`,
+          backgroundColor: token('elevation.surface'),
+          color: today ? token('color.link') : token('color.text'),
+        }}
       >
-        <div className="text-xs text-gray-400">{format(day, 'EEE')}</div>
+        <div className="text-xs" style={{ color: token('color.text.disabled') }}>{format(day, 'EEE')}</div>
         <div
           className={`
             inline-flex items-center justify-center w-7 h-7 rounded-full
-            ${today ? 'bg-blue-600 text-white' : ''}
           `}
+          style={today ? { backgroundColor: token('color.background.brand.bold'), color: '#fff' } : undefined}
         >
           {format(day, 'd')}
         </div>
@@ -75,18 +78,20 @@ export default function CalendarDayColumn({
       {/* Grid area */}
       <div
         ref={handleRef}
-        className="relative flex-1 border-r border-gray-100"
-        style={{ height: totalHeight }}
+        className="relative flex-1"
+        style={{ height: totalHeight, borderRight: `1px solid ${token('color.border')}` }}
         onPointerDown={handleSlotPointerDown}
       >
         {/* Slot grid lines */}
         {slots.map((slot) => (
           <div
             key={slot.time}
-            className={`absolute left-0 right-0 border-t ${
-              slot.isHourMark ? 'border-gray-200' : 'border-gray-100'
-            }`}
-            style={{ top: slot.top }}
+            className="absolute left-0 right-0"
+            style={{
+              top: slot.top,
+              borderTop: `1px solid ${slot.isHourMark ? token('color.border') : token('color.border')}`,
+              opacity: slot.isHourMark ? 1 : 0.5,
+            }}
           />
         ))}
 
@@ -107,8 +112,13 @@ export default function CalendarDayColumn({
         {/* Selection overlay (drag-to-create) */}
         {selection && (
           <div
-            className="absolute left-1 right-1 bg-blue-500/20 border-2 border-blue-500/40 rounded pointer-events-none z-40"
-            style={{ top: selection.startTop, height: selection.height }}
+            className="absolute left-1 right-1 rounded pointer-events-none z-40"
+            style={{
+              top: selection.startTop,
+              height: selection.height,
+              backgroundColor: token('color.background.selected'),
+              border: `2px solid ${token('color.border.focused')}`,
+            }}
           />
         )}
 
@@ -119,8 +129,8 @@ export default function CalendarDayColumn({
             style={{ top: nowIndicatorTop }}
           >
             <div className="flex items-center">
-              <div className="w-2 h-2 rounded-full bg-red-500 -ml-1" />
-              <div className="flex-1 h-px bg-red-500" />
+              <div className="w-2 h-2 rounded-full -ml-1" style={{ backgroundColor: token('color.background.danger.bold') }} />
+              <div className="flex-1 h-px" style={{ backgroundColor: token('color.background.danger.bold') }} />
             </div>
           </div>
         )}

@@ -5,6 +5,7 @@ import { useQuery, useQueryClient } from '@tanstack/react-query';
 import Button from '@atlaskit/button/new';
 import Spinner from '@atlaskit/spinner';
 import { AutoDismissFlag, FlagGroup } from '@atlaskit/flag';
+import { token } from '@atlaskit/tokens';
 import WeekNavigator from '@/components/WeekNavigator';
 import TimesheetRow from '@/components/TimesheetRow';
 import GrandTotal from '@/components/GrandTotal';
@@ -197,7 +198,14 @@ export default function WeeklyGrid({ projectKey }: WeeklyGridProps) {
 
       {/* Error state */}
       {worklogsError && (
-        <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-md text-red-700 text-sm">
+        <div
+          className="mb-4 p-3 rounded-md text-sm"
+          style={{
+            backgroundColor: token('color.background.danger'),
+            border: `1px solid ${token('color.border.danger')}`,
+            color: token('color.text.danger'),
+          }}
+        >
           {worklogsError.message}
         </div>
       )}
@@ -206,13 +214,13 @@ export default function WeeklyGrid({ projectKey }: WeeklyGridProps) {
       {isLoadingWorklogs && (
         <div className="flex items-center justify-center py-12">
           <Spinner size="large" />
-          <span className="ml-3 text-gray-500">Loading timesheet data...</span>
+          <span className="ml-3" style={{ color: token('color.text.subtlest') }}>Loading timesheet data...</span>
         </div>
       )}
 
       {/* Empty state */}
       {!isLoadingWorklogs && !worklogsError && savedIssues.length === 0 && (
-        <div className="text-center py-12 text-gray-500">
+        <div className="text-center py-12" style={{ color: token('color.text.subtlest') }}>
           <p className="text-lg mb-2">No issues added yet</p>
           <p className="text-sm">Search for Jira issues above to start tracking your time.</p>
         </div>
@@ -220,22 +228,32 @@ export default function WeeklyGrid({ projectKey }: WeeklyGridProps) {
 
       {/* Grid table */}
       {!isLoadingWorklogs && gridData && gridData.rows.length > 0 && (
-        <div className="overflow-x-auto border border-gray-200 rounded-lg">
+        <div
+          className="overflow-x-auto rounded-lg"
+          style={{ border: `1px solid ${token('color.border')}` }}
+        >
           <table className="w-full border-collapse">
             <thead>
-              <tr className="bg-gray-100 border-b border-gray-200">
-                <th className="px-3 py-2 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[220px]">
+              <tr style={{ backgroundColor: token('color.background.neutral'), borderBottom: `1px solid ${token('color.border')}` }}>
+                <th
+                  className="px-3 py-2 text-left text-xs font-semibold uppercase tracking-wider min-w-[220px]"
+                  style={{ color: token('color.text.subtlest') }}
+                >
                   Issue
                 </th>
                 {weekRange.dates.map((date, i) => (
                   <th
                     key={i}
-                    className="px-3 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider min-w-[80px]"
+                    className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider min-w-[80px]"
+                    style={{ color: token('color.text.subtlest') }}
                   >
                     {getDayLabel(date)}
                   </th>
                 ))}
-                <th className="px-3 py-2 text-center text-xs font-semibold text-gray-600 uppercase tracking-wider bg-gray-200 min-w-[80px]">
+                <th
+                  className="px-3 py-2 text-center text-xs font-semibold uppercase tracking-wider min-w-[80px]"
+                  style={{ color: token('color.text.subtlest'), backgroundColor: token('color.background.neutral.hovered') }}
+                >
                   Total
                 </th>
               </tr>

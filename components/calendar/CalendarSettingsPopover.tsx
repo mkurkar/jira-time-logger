@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { token } from '@atlaskit/tokens';
 import Select from '@atlaskit/select';
 import { IconButton } from '@atlaskit/button/new';
 import CrossIcon from '@atlaskit/icon/core/cross';
@@ -50,11 +51,16 @@ export default function CalendarSettingsPopover({
 
   return (
     <div
-      className="absolute right-4 top-full mt-1 w-64 bg-white rounded-lg border border-gray-200 shadow-lg z-50 p-4"
+      className="absolute right-4 top-full mt-1 w-64 rounded-lg z-50 p-4"
+      style={{
+        backgroundColor: token('elevation.surface.overlay'),
+        border: `1px solid ${token('color.border')}`,
+        boxShadow: token('elevation.shadow.overlay'),
+      }}
       onClick={(e) => e.stopPropagation()}
     >
       <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-gray-800">Settings</h3>
+        <h3 className="text-sm font-semibold" style={{ color: token('color.text') }}>Settings</h3>
         <IconButton
           icon={CrossIcon}
           label="Close settings"
@@ -67,7 +73,7 @@ export default function CalendarSettingsPopover({
       <div className="space-y-3">
         {/* Snap granularity */}
         <div className="flex items-center justify-between gap-2">
-          <label className="text-xs text-gray-600 flex-shrink-0">Snap to</label>
+          <label className="text-xs flex-shrink-0" style={{ color: token('color.text.subtle') }}>Snap to</label>
           <div style={{ width: 120 }}>
             <Select
               options={snapOptions}
@@ -81,7 +87,7 @@ export default function CalendarSettingsPopover({
 
         {/* Start hour */}
         <div className="flex items-center justify-between gap-2">
-          <label className="text-xs text-gray-600 flex-shrink-0">Start hour</label>
+          <label className="text-xs flex-shrink-0" style={{ color: token('color.text.subtle') }}>Start hour</label>
           <div style={{ width: 120 }}>
             <Select
               options={startHourOptions}
@@ -95,7 +101,7 @@ export default function CalendarSettingsPopover({
 
         {/* End hour */}
         <div className="flex items-center justify-between gap-2">
-          <label className="text-xs text-gray-600 flex-shrink-0">End hour</label>
+          <label className="text-xs flex-shrink-0" style={{ color: token('color.text.subtle') }}>End hour</label>
           <div style={{ width: 120 }}>
             <Select
               options={endHourOptions}
@@ -109,7 +115,7 @@ export default function CalendarSettingsPopover({
 
         {/* Slot display size */}
         <div className="flex items-center justify-between gap-2">
-          <label className="text-xs text-gray-600 flex-shrink-0">Slot size</label>
+          <label className="text-xs flex-shrink-0" style={{ color: token('color.text.subtle') }}>Slot size</label>
           <div style={{ width: 120 }}>
             <Select
               options={slotOptions}

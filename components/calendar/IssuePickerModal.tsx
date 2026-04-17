@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo, useCallback, useRef, useEffect } from 'react';
+import { token } from '@atlaskit/tokens';
 import { IconButton } from '@atlaskit/button/new';
 import CrossIcon from '@atlaskit/icon/core/cross';
 import SearchIcon from '@atlaskit/icon/core/search';
@@ -128,7 +129,11 @@ export default function IssuePickerModal({
               {/* Recently used section */}
               {recentIssues.length > 0 && (
                 <>
-                  <div className="px-4 py-1.5 bg-amber-50/80 text-[10px] font-semibold text-amber-700 uppercase tracking-wider border-b border-amber-100 sticky top-0">
+                  <div className="px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wider sticky top-0" style={{
+                    backgroundColor: token('color.background.warning'),
+                    color: token('color.text.warning'),
+                    borderBottom: `1px solid ${token('color.border.warning')}`,
+                  }}>
                     Recently Used
                   </div>
                   {recentIssues.map((issue) => (
@@ -144,7 +149,11 @@ export default function IssuePickerModal({
               {/* All issues section */}
               {otherIssues.length > 0 && (
                 <>
-                  <div className="px-4 py-1.5 bg-gray-50 text-[10px] font-semibold text-gray-500 uppercase tracking-wider border-b border-gray-100 sticky top-0">
+                  <div className="px-4 py-1.5 text-[10px] font-semibold uppercase tracking-wider sticky top-0" style={{
+                    backgroundColor: token('color.background.neutral'),
+                    color: token('color.text.subtlest'),
+                    borderBottom: `1px solid ${token('color.border')}`,
+                  }}>
                     All Issues
                   </div>
                   {otherIssues.map((issue) => (
@@ -159,7 +168,7 @@ export default function IssuePickerModal({
 
               {/* Empty state */}
               {filteredIssues.length === 0 && (
-                <div className="px-4 py-8 text-center text-xs text-gray-400">
+                <div className="px-4 py-8 text-center text-xs" style={{ color: token('color.text.disabled') }}>
                   {searchTerm.trim() ? 'No matching issues' : 'No issues available'}
                 </div>
               )}
@@ -167,9 +176,9 @@ export default function IssuePickerModal({
 
             {/* Footer: time preview */}
             {startTime && (
-              <div className="mt-3 px-4 py-2.5 bg-gray-50 rounded-md">
-                <p className="text-xs text-gray-500">
-                  Creating: <span className="font-medium text-gray-700">{formatDuration(duration)}</span>{' '}
+              <div className="mt-3 px-4 py-2.5 rounded-md" style={{ backgroundColor: token('color.background.neutral') }}>
+                <p className="text-xs" style={{ color: token('color.text.subtlest') }}>
+                  Creating: <span className="font-medium" style={{ color: token('color.text') }}>{formatDuration(duration)}</span>{' '}
                   on {formatStartTime(startTime)}
                 </p>
               </div>
@@ -192,12 +201,15 @@ function IssueRow({
   return (
     <button
       onClick={() => onClick(issue.key)}
-      className="w-full px-4 py-2 text-left border-b border-gray-100 hover:bg-blue-50 transition-colors flex items-start gap-2"
+      className="w-full px-4 py-2 text-left transition-colors flex items-start gap-2"
+      style={{ borderBottom: `1px solid ${token('color.border')}` }}
+      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = token('color.background.neutral.subtle.hovered'); }}
+      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = 'transparent'; }}
     >
-      <span className="text-xs font-semibold text-blue-600 whitespace-nowrap flex-shrink-0">
+      <span className="text-xs font-semibold whitespace-nowrap flex-shrink-0" style={{ color: token('color.link') }}>
         {issue.key}
       </span>
-      <span className="text-xs text-gray-600 truncate">{issue.fields.summary}</span>
+      <span className="text-xs truncate" style={{ color: token('color.text.subtle') }}>{issue.fields.summary}</span>
     </button>
   );
 }
