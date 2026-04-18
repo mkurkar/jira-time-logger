@@ -6,7 +6,7 @@ import Button, { IconButton } from '@atlaskit/button/new';
 import CrossIcon from '@atlaskit/icon/core/cross';
 import Textfield from '@atlaskit/textfield';
 import Modal, { ModalBody, ModalFooter, ModalHeader, ModalTitle, ModalTransition } from '@atlaskit/modal-dialog';
-import { formatDateISO } from '@/lib/date-utils';
+import { formatDateISO, toJiraDatetimeAt9AM } from '@/lib/date-utils';
 
 interface BulkEntry {
   id: string;
@@ -73,7 +73,7 @@ export default function BulkEntryModal({ isOpen, onClose, onComplete }: BulkEntr
       try {
         const hours = parseFloat(entry.hours);
         const timeSpentSeconds = Math.round(hours * 3600);
-        const started = `${entry.date}T09:00:00.000+0000`;
+        const started = toJiraDatetimeAt9AM(entry.date);
 
         const res = await fetch('/api/worklogs', {
           method: 'POST',

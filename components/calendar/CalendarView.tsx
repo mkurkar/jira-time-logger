@@ -27,27 +27,10 @@ import IssuePickerModal from './IssuePickerModal';
 import EditWorklogModal from './EditWorklogModal';
 import DropZoneOverlay from './DropZoneOverlay';
 import { useIssueDragDrop } from '@/hooks/useIssueDragDrop';
+import { toJiraDatetime } from '@/lib/date-utils';
 import Button from '@atlaskit/button/new';
 
 const SETTINGS_VERSION = 2;
-
-// Helper: format Date to Jira datetime string
-function toJiraDatetime(date: Date): string {
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const y = date.getFullYear();
-  const mo = pad(date.getMonth() + 1);
-  const d = pad(date.getDate());
-  const h = pad(date.getHours());
-  const mi = pad(date.getMinutes());
-  const s = pad(date.getSeconds());
-  const ms = String(date.getMilliseconds()).padStart(3, '0');
-  const tzOffset = -date.getTimezoneOffset();
-  const sign = tzOffset >= 0 ? '+' : '-';
-  const absOffset = Math.abs(tzOffset);
-  const tzH = pad(Math.floor(absOffset / 60));
-  const tzM = pad(absOffset % 60);
-  return `${y}-${mo}-${d}T${h}:${mi}:${s}.${ms}${sign}${tzH}${tzM}`;
-}
 
 interface CalendarViewProps {
   worklogs?: JiraWorklog[];
@@ -188,7 +171,7 @@ export default function CalendarView({
       if (!dateRange.startDate || !dateRange.endDate) return [];
       let res: Response;
       if (projectKey) {
-        const jql = `project = "${projectKey}" AND worklogDate >= "${dateRange.startDate}" AND worklogDate <= "${dateRange.endDate}" ORDER BY updated DESC`;
+        const jql = `project = "${projectKey}" AND (worklogDate >= "${dateRange.startDate}" AND worklogDate <= "${dateRange.endDate}" OR assignee = currentUser()) ORDER BY updated DESC`;
         res = await fetch(`/api/issues?jql=${encodeURIComponent(jql)}&maxResults=50`);
       } else {
         res = await fetch(`/api/my-issues?startDate=${dateRange.startDate}&endDate=${dateRange.endDate}`);
@@ -345,10 +328,13 @@ export default function CalendarView({
     }
   }, [issuePickerState, addRecentIssue, showError, multiUserWorklogs]);
 
-  // Event click handler (Phase 4.3: will open edit modal/popover)
+  // Event click handler — open edit modal
   const handleEventClick = useCallback((eventId: string) => {
-    console.log('Event clicked:', eventId);
-  }, []);
+    const calEvent = events.calendarEvents.find(e => e.id === eventId);
+    if (calEvent) {
+      setEditingEvent(calEvent);
+    }
+  }, [events.calendarEvents]);
 
   // T012: Initialize interaction hooks
   const drag = useEventDrag({
@@ -643,11 +629,11 @@ export default function CalendarView({
               }}
             >
               {/* Empty header spacer */}
-              <div className="sticky top-0 z-20 py-2" style={{
+              <div className="sticky top-0 z-[2] py-2" style={{
                 backgroundColor: token('elevation.surface'),
                 borderBottom: `1px solid ${token('color.border')}`,
               }}>
-                <div className="h-7" /> {/* Match day header height */}
+                <div style={{ height: '2.875rem' }} /> {/* Match day header height: day name + date circle */}
               </div>
               {/* Hour labels */}
               <div className="relative" style={{ height: grid.totalHeight }}>

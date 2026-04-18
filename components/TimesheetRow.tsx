@@ -6,15 +6,18 @@ import { token } from '@atlaskit/tokens';
 import DayCell from '@/components/DayCell';
 import { formatHours } from '@/lib/worklog-aggregator';
 import type { GridRow, GridCell, CellMutationState } from '@/types/timesheet';
+import type { JiraWorklog } from '@/src/types/jira';
 
 interface TimesheetRowProps {
   row: GridRow;
   onRemove: (issueKey: string) => void;
-  onSaveCell: (cell: GridCell, newHours: number) => void;
+  onSaveCell: (cell: GridCell, newHours: number, comment?: string) => void;
+  onUpdateWorklog?: (cell: GridCell, worklog: JiraWorklog, newHours: number, comment?: string) => void;
+  onDeleteWorklog?: (cell: GridCell, worklog: JiraWorklog) => void;
   getCellState: (issueKey: string, date: Date) => CellMutationState;
 }
 
-export default function TimesheetRow({ row, onRemove, onSaveCell, getCellState }: TimesheetRowProps) {
+export default function TimesheetRow({ row, onRemove, onSaveCell, onUpdateWorklog, onDeleteWorklog, getCellState }: TimesheetRowProps) {
   return (
     <tr
       className="transition-colors"
@@ -48,6 +51,8 @@ export default function TimesheetRow({ row, onRemove, onSaveCell, getCellState }
           cell={cell}
           mutationState={getCellState(cell.issueKey, cell.date)}
           onSave={onSaveCell}
+          onUpdateWorklog={onUpdateWorklog}
+          onDeleteWorklog={onDeleteWorklog}
         />
       ))}
       

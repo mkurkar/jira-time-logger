@@ -52,7 +52,7 @@ export default function WeeklyGrid({ projectKey }: WeeklyGridProps) {
       try {
         let res: Response;
         if (projectKey) {
-          const jql = `project = "${projectKey}" AND worklogDate >= "${startDate}" AND worklogDate <= "${endDate}" ORDER BY updated DESC`;
+          const jql = `project = "${projectKey}" AND (worklogDate >= "${startDate}" AND worklogDate <= "${endDate}" OR assignee = currentUser()) ORDER BY updated DESC`;
           res = await fetch(`/api/issues?jql=${encodeURIComponent(jql)}&maxResults=50`);
         } else {
           res = await fetch(`/api/my-issues?startDate=${startDate}&endDate=${endDate}`);
@@ -128,7 +128,7 @@ export default function WeeklyGrid({ projectKey }: WeeklyGridProps) {
   }, [issuesData, worklogsData, weekRange]);
 
   // Worklog mutations hook (no arguments — invalidation via React Query)
-  const { saveCell, getCellState } = useWorklogMutations();
+  const { saveCell, updateWorklog, deleteWorklog, getCellState } = useWorklogMutations();
 
   // Toast management
   const showToast = useCallback((message: string, type: 'success' | 'error') => {
@@ -265,6 +265,8 @@ export default function WeeklyGrid({ projectKey }: WeeklyGridProps) {
                   row={row}
                   onRemove={handleRemoveIssue}
                   onSaveCell={saveCell}
+                  onUpdateWorklog={updateWorklog}
+                  onDeleteWorklog={deleteWorklog}
                   getCellState={getCellState}
                 />
               ))}

@@ -2,12 +2,17 @@
 
 import { useState, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { toJiraDatetimeAt9AM } from '@/lib/date-utils';
+import { textToADF } from '@/lib/adf-helpers';
 import type { GridCell, CellMutationState } from '@/types/timesheet';
+import type { JiraWorklog } from '@/src/types/jira';
 import { formatDateISO } from '@/lib/date-utils';
 
 interface UseWorklogMutationsReturn {
   cellStates: Map<string, CellMutationState>;
-  saveCell: (cell: GridCell, newHours: number) => Promise<void>;
+  saveCell: (cell: GridCell, newHours: number, comment?: string) => Promise<void>;
+  updateWorklog: (cell: GridCell, worklog: JiraWorklog, newHours: number, comment?: string) => Promise<void>;
+  deleteWorklog: (cell: GridCell, worklog: JiraWorklog) => Promise<void>;
   deleteCell: (cell: GridCell) => Promise<void>;
   getCellState: (issueKey: string, date: Date) => CellMutationState;
 }
@@ -15,6 +20,13 @@ interface UseWorklogMutationsReturn {
 function cellKey(issueKey: string, date: Date | string): string {
   const d = typeof date === 'string' ? date : formatDateISO(date);
   return `${issueKey}:${d}`;
+}
+
+function formatError(msg: string): string {
+  if (msg.includes('No permission')) return 'No permission to log time on this issue';
+  if (msg.includes('Rate limited')) return 'Rate limited by Jira — please wait and try again';
+  if (msg.includes('not found')) return 'Issue or worklog not found';
+  return msg;
 }
 
 export function useWorklogMutations(): UseWorklogMutationsReturn {
@@ -37,27 +49,31 @@ export function useWorklogMutations(): UseWorklogMutationsReturn {
   }, [queryClient]);
 
   const saveCell = useCallback(
-    async (cell: GridCell, newHours: number) => {
+    async (cell: GridCell, newHours: number, comment?: string) => {
       const dateStr = formatDateISO(cell.date);
       const newSeconds = Math.round(newHours * 3600);
 
-      // No change — skip
-      if (newSeconds === cell.totalSeconds) return;
+      // No change in hours and no comment change — skip
+      if (newSeconds === cell.totalSeconds && !comment) return;
 
       setCellStatus(cell.issueKey, dateStr, 'saving');
 
       try {
+        const commentBody = comment ? textToADF(comment) : undefined;
+
         if (cell.worklogs.length > 0 && newSeconds > 0) {
           // UPDATE existing worklog (use the first one)
           const wl = cell.worklogs[0];
+          const body: Record<string, unknown> = {
+            issueKey: cell.issueKey,
+            worklogId: wl.id,
+            timeSpentSeconds: newSeconds,
+          };
+          if (commentBody) body.comment = commentBody;
           await fetch('/api/worklogs', {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              issueKey: cell.issueKey,
-              worklogId: wl.id,
-              timeSpentSeconds: newSeconds,
-            }),
+            body: JSON.stringify(body),
           }).then(async (res) => {
             if (!res.ok) {
               const data = await res.json().catch(() => ({}));
@@ -65,7 +81,7 @@ export function useWorklogMutations(): UseWorklogMutationsReturn {
             }
           });
         } else if (cell.worklogs.length > 0 && newSeconds === 0) {
-          // DELETE — user cleared the cell
+          // DELETE — user cleared the cell (delete first worklog only for single-worklog cells)
           const wl = cell.worklogs[0];
           await fetch(`/api/worklogs?issueKey=${encodeURIComponent(cell.issueKey)}&worklogId=${encodeURIComponent(wl.id)}`, {
             method: 'DELETE',
@@ -77,15 +93,17 @@ export function useWorklogMutations(): UseWorklogMutationsReturn {
           });
         } else if (newSeconds > 0) {
           // CREATE new worklog
-          const started = `${dateStr}T09:00:00.000+0000`;
+          const started = toJiraDatetimeAt9AM(dateStr);
+          const body: Record<string, unknown> = {
+            issueKey: cell.issueKey,
+            timeSpentSeconds: newSeconds,
+            started,
+          };
+          if (commentBody) body.comment = commentBody;
           await fetch('/api/worklogs', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              issueKey: cell.issueKey,
-              timeSpentSeconds: newSeconds,
-              started,
-            }),
+            body: JSON.stringify(body),
           }).then(async (res) => {
             if (!res.ok) {
               const data = await res.json().catch(() => ({}));
@@ -95,18 +113,80 @@ export function useWorklogMutations(): UseWorklogMutationsReturn {
         }
 
         setCellStatus(cell.issueKey, dateStr, 'idle');
-        invalidateWorklogs(); // React Query handles refetch
+        invalidateWorklogs();
       } catch (err) {
-        const msg = (err as Error).message;
-        let userMessage = msg;
-        if (msg.includes('No permission')) {
-          userMessage = 'No permission to log time on this issue';
-        } else if (msg.includes('Rate limited')) {
-          userMessage = 'Rate limited by Jira — please wait and try again';
-        } else if (msg.includes('not found')) {
-          userMessage = 'Issue or worklog not found';
+        setCellStatus(cell.issueKey, dateStr, 'error', formatError((err as Error).message));
+      }
+    },
+    [invalidateWorklogs, setCellStatus],
+  );
+
+  /** Update a specific worklog within a cell (for multi-worklog cells) */
+  const updateWorklog = useCallback(
+    async (cell: GridCell, worklog: JiraWorklog, newHours: number, comment?: string) => {
+      const dateStr = formatDateISO(cell.date);
+      const newSeconds = Math.round(newHours * 3600);
+
+      setCellStatus(cell.issueKey, dateStr, 'saving');
+
+      try {
+        if (newSeconds === 0) {
+          // Delete this specific worklog
+          const res = await fetch(
+            `/api/worklogs?issueKey=${encodeURIComponent(cell.issueKey)}&worklogId=${encodeURIComponent(worklog.id)}`,
+            { method: 'DELETE' },
+          );
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.error || `Failed (${res.status})`);
+          }
+        } else {
+          const body: Record<string, unknown> = {
+            issueKey: cell.issueKey,
+            worklogId: worklog.id,
+            timeSpentSeconds: newSeconds,
+          };
+          if (comment) body.comment = textToADF(comment);
+          const res = await fetch('/api/worklogs', {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body),
+          });
+          if (!res.ok) {
+            const data = await res.json().catch(() => ({}));
+            throw new Error(data.error || `Failed (${res.status})`);
+          }
         }
-        setCellStatus(cell.issueKey, dateStr, 'error', userMessage);
+
+        setCellStatus(cell.issueKey, dateStr, 'idle');
+        invalidateWorklogs();
+      } catch (err) {
+        setCellStatus(cell.issueKey, dateStr, 'error', formatError((err as Error).message));
+      }
+    },
+    [invalidateWorklogs, setCellStatus],
+  );
+
+  /** Delete a specific worklog within a cell */
+  const deleteWorklog = useCallback(
+    async (cell: GridCell, worklog: JiraWorklog) => {
+      const dateStr = formatDateISO(cell.date);
+      setCellStatus(cell.issueKey, dateStr, 'saving');
+
+      try {
+        const res = await fetch(
+          `/api/worklogs?issueKey=${encodeURIComponent(cell.issueKey)}&worklogId=${encodeURIComponent(worklog.id)}`,
+          { method: 'DELETE' },
+        );
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || `Delete failed (${res.status})`);
+        }
+
+        setCellStatus(cell.issueKey, dateStr, 'idle');
+        invalidateWorklogs();
+      } catch (err) {
+        setCellStatus(cell.issueKey, dateStr, 'error', formatError((err as Error).message));
       }
     },
     [invalidateWorklogs, setCellStatus],
@@ -133,16 +213,7 @@ export function useWorklogMutations(): UseWorklogMutationsReturn {
         setCellStatus(cell.issueKey, dateStr, 'idle');
         invalidateWorklogs();
       } catch (err) {
-        const msg = (err as Error).message;
-        let userMessage = msg;
-        if (msg.includes('No permission')) {
-          userMessage = 'No permission to log time on this issue';
-        } else if (msg.includes('Rate limited')) {
-          userMessage = 'Rate limited by Jira — please wait and try again';
-        } else if (msg.includes('not found')) {
-          userMessage = 'Issue or worklog not found';
-        }
-        setCellStatus(cell.issueKey, dateStr, 'error', userMessage);
+        setCellStatus(cell.issueKey, dateStr, 'error', formatError((err as Error).message));
       }
     },
     [invalidateWorklogs, setCellStatus],
@@ -156,7 +227,7 @@ export function useWorklogMutations(): UseWorklogMutationsReturn {
     [cellStates],
   );
 
-  return { cellStates, saveCell, deleteCell, getCellState };
+  return { cellStates, saveCell, updateWorklog, deleteWorklog, deleteCell, getCellState };
 }
 
 /** Check if a worklog already exists for an issue on a given date */

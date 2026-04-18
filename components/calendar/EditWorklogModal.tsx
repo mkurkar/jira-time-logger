@@ -8,29 +8,13 @@ import Textfield from '@atlaskit/textfield';
 import TextArea from '@atlaskit/textarea';
 import Modal, { ModalBody, ModalFooter, ModalHeader, ModalTitle, ModalTransition } from '@atlaskit/modal-dialog';
 import type { CalendarEvent } from '@/types/calendar';
+import { toJiraDatetime } from '@/lib/date-utils';
 
 interface EditWorklogModalProps {
   isOpen: boolean;
   calendarEvent: CalendarEvent | null;
   onClose: () => void;
   onSaved: () => void;
-}
-
-function toJiraDatetime(date: Date): string {
-  const pad = (n: number) => String(n).padStart(2, '0');
-  const y = date.getFullYear();
-  const mo = pad(date.getMonth() + 1);
-  const d = pad(date.getDate());
-  const h = pad(date.getHours());
-  const mi = pad(date.getMinutes());
-  const s = pad(date.getSeconds());
-  const ms = String(date.getMilliseconds()).padStart(3, '0');
-  const tzOffset = -date.getTimezoneOffset();
-  const sign = tzOffset >= 0 ? '+' : '-';
-  const absOffset = Math.abs(tzOffset);
-  const tzH = pad(Math.floor(absOffset / 60));
-  const tzM = pad(absOffset % 60);
-  return `${y}-${mo}-${d}T${h}:${mi}:${s}.${ms}${sign}${tzH}${tzM}`;
 }
 
 export default function EditWorklogModal({ isOpen, calendarEvent, onClose, onSaved }: EditWorklogModalProps) {

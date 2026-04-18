@@ -53,6 +53,8 @@ export default function ProjectSelector({
         }}
         spacing="compact"
         placeholder="Select project..."
+        menuPortalTarget={typeof document !== 'undefined' ? document.body : undefined}
+        styles={{ menuPortal: (base: Record<string, unknown>) => ({ ...base, zIndex: 9999 }) }}
       />
     </div>
   );

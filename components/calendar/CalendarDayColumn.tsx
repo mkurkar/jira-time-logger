@@ -57,7 +57,7 @@ export default function CalendarDayColumn({
     <div className={`flex flex-col min-w-0 calendar-day-col ${today ? 'calendar-day-today' : ''}`}>
       {/* Day header */}
       <div
-        className="sticky top-0 z-20 text-center py-2 text-sm font-medium"
+        className="sticky top-0 z-[2] text-center py-2 text-sm font-medium"
         style={{
           borderBottom: `2px solid ${today ? token('color.border.brand') : token('color.border')}`,
           backgroundColor: token('elevation.surface'),
