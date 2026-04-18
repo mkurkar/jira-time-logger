@@ -100,7 +100,7 @@ export default function CalendarContextMenu({
           </p>
           <div className="flex gap-2">
             <button
-              onClick={() => { onDelete(); onClose(); }}
+              onClick={() => { onDelete(); }}
               className="px-2.5 py-1 text-xs font-medium rounded"
               style={{
                 backgroundColor: token('color.background.danger.bold'),

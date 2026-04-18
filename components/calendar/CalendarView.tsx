@@ -764,23 +764,24 @@ export default function CalendarView({
             }
           });
         }}
-        onDelete={() => {
-          contextMenu.handleDelete(async (dayEvent) => {
-            const calEvent = dayEvent.calendarEvent;
-            try {
-              const res = await fetch(
-                `/api/worklogs?issueKey=${encodeURIComponent(calEvent.issueKey)}&worklogId=${encodeURIComponent(calEvent.id)}`,
-                { method: 'DELETE' }
-              );
-              if (!res.ok) {
-                const data = await res.json().catch(() => ({}));
-                throw new Error(data.error || `Failed (${res.status})`);
-              }
-              multiUserWorklogs.refetch();
-            } catch (err) {
-              showError(`Failed to delete worklog: ${(err as Error).message}`);
+        onDelete={async () => {
+          const dayEvent = contextMenu.menuState.targetEvent;
+          if (!dayEvent) return;
+          const calEvent = dayEvent.calendarEvent;
+          try {
+            const res = await fetch(
+              `/api/worklogs?issueKey=${encodeURIComponent(calEvent.issueKey)}&worklogId=${encodeURIComponent(calEvent.id)}`,
+              { method: 'DELETE' }
+            );
+            if (!res.ok) {
+              const data = await res.json().catch(() => ({}));
+              throw new Error(data.error || `Failed (${res.status})`);
             }
-          });
+            multiUserWorklogs.refetch();
+          } catch (err) {
+            showError(`Failed to delete worklog: ${(err as Error).message}`);
+          }
+          contextMenu.closeMenu();
         }}
         onClose={contextMenu.closeMenu}
       />
