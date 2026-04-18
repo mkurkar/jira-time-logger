@@ -45,6 +45,7 @@ export default function CalendarContextMenu({
 
   return (
     <div
+      data-context-menu
       className="fixed z-50 rounded-md py-1 min-w-[160px]"
       style={{
         left: position.x,

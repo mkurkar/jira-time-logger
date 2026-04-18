@@ -67,25 +67,35 @@ export function useContextMenu(): UseContextMenuReturn {
     (callback: (event: DayEvent) => void) => {
       if (menuState.targetEvent) {
         callback(menuState.targetEvent);
-        closeMenu();
+        // Don't closeMenu here — let the context menu component handle close
+        // after delete confirmation is shown and acted upon
       }
     },
-    [menuState.targetEvent, closeMenu],
+    [menuState.targetEvent],
   );
 
   // Close on document click or Escape key
   useEffect(() => {
     if (!menuState.isOpen) return;
 
-    const handleClick = () => closeMenu();
+    const handleClick = (e: MouseEvent) => {
+      // Don't close if clicking inside the context menu itself
+      const target = e.target as HTMLElement;
+      if (target.closest('[data-context-menu]')) return;
+      closeMenu();
+    };
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') closeMenu();
     };
 
-    document.addEventListener('click', handleClick);
+    // Delay adding the listener so the opening right-click doesn't immediately close it
+    const timeoutId = setTimeout(() => {
+      document.addEventListener('click', handleClick);
+    }, 0);
     document.addEventListener('keydown', handleKeyDown);
 
     return () => {
+      clearTimeout(timeoutId);
       document.removeEventListener('click', handleClick);
       document.removeEventListener('keydown', handleKeyDown);
     };
