@@ -183,7 +183,7 @@ interface UserAvatarProps {
 function UserAvatar({ user }: UserAvatarProps) {
   const [imgError, setImgError] = useState(false);
 
-  if (!user) {
+  if (!user || !user.displayName) {
     return (
       <div
         className="w-8 h-8 rounded-full flex items-center justify-center"
@@ -196,7 +196,8 @@ function UserAvatar({ user }: UserAvatarProps) {
   }
 
   const avatarUrl = user.avatarUrls?.['24x24'] ?? user.avatarUrls?.['32x32'];
-  const initials = user.displayName
+  const displayName = user.displayName ?? '';
+  const initials = displayName
     .split(/\s+/)
     .map((w) => w[0]?.toUpperCase() ?? '')
     .slice(0, 2)
@@ -209,12 +210,12 @@ function UserAvatar({ user }: UserAvatarProps) {
         backgroundColor: token('color.background.neutral'),
         border: `1px solid ${token('color.border')}`,
       }}
-      title={user.displayName}
+      title={user.displayName ?? 'Unknown user'}
     >
       {avatarUrl && !imgError ? (
         <img
           src={avatarUrl}
-          alt={user.displayName}
+          alt={displayName}
           width={22}
           height={22}
           className="rounded-full"
@@ -228,11 +229,11 @@ function UserAvatar({ user }: UserAvatarProps) {
             color: 'white',
           }}
         >
-          {initials}
+          {initials || '?'}
         </div>
       )}
       <span className="text-xs font-medium hidden lg:block max-w-[120px] truncate" style={{ color: token('color.text') }}>
-        {user.displayName.split(/\s+/)[0]}
+        {displayName.split(/\s+/)[0] || 'User'}
       </span>
     </div>
   );
