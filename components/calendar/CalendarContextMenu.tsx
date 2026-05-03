@@ -43,13 +43,19 @@ export default function CalendarContextMenu({
     e.currentTarget.style.backgroundColor = 'transparent';
   };
 
+  // Clamp position to viewport so the menu is always visible
+  const menuWidth = 160;
+  const menuHeight = 120;
+  const clampedX = Math.min(position.x, window.innerWidth - menuWidth - 8);
+  const clampedY = Math.min(position.y, window.innerHeight - menuHeight - 8);
+
   return (
     <div
       data-context-menu
       className="fixed z-50 rounded-md py-1 min-w-[160px]"
       style={{
-        left: position.x,
-        top: position.y,
+        left: Math.max(0, clampedX),
+        top: Math.max(0, clampedY),
         backgroundColor: token('elevation.surface.overlay'),
         border: `1px solid ${token('color.border')}`,
         boxShadow: token('elevation.shadow.overlay'),
