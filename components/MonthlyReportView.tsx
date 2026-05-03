@@ -20,6 +20,39 @@ const ReportPDFButton = dynamic<{ report: MonthlyReport }>(
   { ssr: false }
 );
 
+// ── CSV export ────────────────────────────────────────────────────────────────
+
+function escapeCsvCell(value: string): string {
+  return `"${value.replace(/"/g, '""')}"`;
+}
+
+function downloadReportCSV(report: MonthlyReport) {
+  const headers = ['Date', 'Issue Key', 'Summary', 'Project', 'Hours', 'Time', 'Comment'];
+  const rows: string[][] = report.byDay.flatMap((day) =>
+    day.entries.map((entry) => [
+      entry.date,
+      entry.issueKey,
+      entry.issueSummary,
+      entry.projectName,
+      secondsToHours(entry.timeSpentSeconds).toString(),
+      formatSeconds(entry.timeSpentSeconds),
+      entry.comment ?? '',
+    ]),
+  );
+
+  const csv = [headers, ...rows]
+    .map((row) => row.map(escapeCsvCell).join(','))
+    .join('\r\n');
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `report-${report.authorName.replace(/\s+/g, '-')}-${report.year}-${String(report.month).padStart(2, '0')}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 // ── Types returned by /api/report ────────────────────────────────────────────
 
 interface ReportApiResponse {
@@ -28,6 +61,8 @@ interface ReportApiResponse {
   authorAccountId: string;
   authorName: string;
 }
+
+interface TeamUser { accountId: string; displayName: string; }
 
 // ── Month/Year picker helpers ────────────────────────────────────────────────
 
@@ -43,15 +78,24 @@ function getYearOptions() {
   return Array.from({ length: 5 }, (_, i) => current - i);
 }
 
-// ── Fetch helper ─────────────────────────────────────────────────────────────
+// ── Fetch helpers ─────────────────────────────────────────────────────────────
 
-async function fetchMonthlyReport(month: number, year: number): Promise<ReportApiResponse> {
-  const res = await fetch(`/api/report?month=${month}&year=${year}`);
+async function fetchMonthlyReport(month: number, year: number, accountId?: string): Promise<ReportApiResponse> {
+  const params = new URLSearchParams({ month: String(month), year: String(year) });
+  if (accountId) params.set('accountId', accountId);
+  const res = await fetch(`/api/report?${params}`);
   if (!res.ok) {
     const err = await res.json().catch(() => ({}));
     throw new Error(err.error ?? 'Failed to load report');
   }
   return res.json();
+}
+
+async function fetchTeamUsers(month: number, year: number): Promise<TeamUser[]> {
+  const res = await fetch(`/api/team-report?month=${month}&year=${year}`);
+  if (!res.ok) return [];
+  const data = await res.json();
+  return (data.users ?? []) as TeamUser[];
 }
 
 // ── Main component ────────────────────────────────────────────────────────────
@@ -61,10 +105,18 @@ export default function MonthlyReportView() {
   const [month, setMonth] = useState(now.getMonth() + 1);
   const [year, setYear] = useState(now.getFullYear());
   const [activeTab, setActiveTab] = useState<'day' | 'issue' | 'project' | 'comments'>('issue');
+  const [selectedAccountId, setSelectedAccountId] = useState<string>('');
+
+  // Fetch team users for the "report for" picker (lazy — only when month/year are set)
+  const { data: teamUsers } = useQuery<TeamUser[]>({
+    queryKey: ['team-users-for-report', month, year],
+    queryFn: () => fetchTeamUsers(month, year),
+    staleTime: 10 * 60 * 1000,
+  });
 
   const { data, isLoading, error, refetch } = useQuery<ReportApiResponse>({
-    queryKey: ['monthly-report', month, year],
-    queryFn: () => fetchMonthlyReport(month, year),
+    queryKey: ['monthly-report', month, year, selectedAccountId],
+    queryFn: () => fetchMonthlyReport(month, year, selectedAccountId || undefined),
     staleTime: 5 * 60 * 1000,
     gcTime: 30 * 60 * 1000,
   });
@@ -121,6 +173,21 @@ export default function MonthlyReportView() {
         </div>
 
         <div className="flex items-center gap-3 flex-wrap">
+          {/* User picker */}
+          {teamUsers && teamUsers.length > 0 && (
+            <select
+              style={selectStyle}
+              value={selectedAccountId}
+              onChange={(e) => setSelectedAccountId(e.target.value)}
+              title="View report for"
+            >
+              <option value="">My Report</option>
+              {teamUsers.map((u) => (
+                <option key={u.accountId} value={u.accountId}>{u.displayName}</option>
+              ))}
+            </select>
+          )}
+
           <select style={selectStyle} value={month} onChange={(e) => setMonth(Number(e.target.value))}>
             {getMonthOptions().map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
@@ -150,6 +217,25 @@ export default function MonthlyReportView() {
           >
             {isLoading ? 'Loading…' : 'Generate'}
           </button>
+
+          {report && (
+            <button
+              onClick={() => downloadReportCSV(report)}
+              title="Download as CSV"
+              style={{
+                padding: '7px 14px',
+                background: token('color.background.neutral'),
+                color: token('color.text'),
+                border: `1px solid ${token('color.border')}`,
+                borderRadius: 4,
+                fontWeight: 600,
+                fontSize: 14,
+                cursor: 'pointer',
+              }}
+            >
+              CSV
+            </button>
+          )}
 
           {report && <ReportPDFButton report={report} />}
         </div>

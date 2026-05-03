@@ -133,6 +133,13 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    if (timeSpentSeconds < 60) {
+      return NextResponse.json(
+        { error: 'Time logged must be at least 1 minute (60 seconds).' },
+        { status: 400 },
+      );
+    }
+
     const config = loadConfig();
     const client = new JiraClient(config);
 
@@ -160,6 +167,13 @@ export async function PUT(request: NextRequest) {
     if (!issueKey || !worklogId) {
       return NextResponse.json(
         { error: 'Missing required fields: issueKey, worklogId' },
+        { status: 400 },
+      );
+    }
+
+    if (timeSpentSeconds !== undefined && timeSpentSeconds < 60) {
+      return NextResponse.json(
+        { error: 'Time logged must be at least 1 minute (60 seconds).' },
         { status: 400 },
       );
     }

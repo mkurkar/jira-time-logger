@@ -13,6 +13,40 @@ import {
   type DashboardUserRow, type TargetHoursConfig,
 } from '@/types/report';
 import type { JiraWorklog } from '@/src/types/jira';
+import { getDaysInMonth } from 'date-fns';
+
+// ── Progress alert ────────────────────────────────────────────────────────────
+
+type AlertLevel = 'ahead' | 'on-track' | 'at-risk' | 'behind' | null;
+
+function getAlertLevel(
+  totalSeconds: number,
+  targetSeconds: number,
+  month: number,
+  year: number,
+): AlertLevel {
+  const now = new Date();
+  // Only show alerts for the current month
+  if (now.getFullYear() !== year || now.getMonth() + 1 !== month) return null;
+
+  const dayOfMonth = now.getDate();
+  const daysInMonth = getDaysInMonth(new Date(year, month - 1));
+  const proRatedTarget = (dayOfMonth / daysInMonth) * targetSeconds;
+  if (proRatedTarget === 0) return null;
+
+  const ratio = totalSeconds / proRatedTarget;
+  if (ratio >= 1.05) return 'ahead';
+  if (ratio >= 0.85) return 'on-track';
+  if (ratio >= 0.5) return 'at-risk';
+  return 'behind';
+}
+
+const ALERT_STYLES: Record<AlertLevel & string, { label: string; bg: string; color: string }> = {
+  ahead:    { label: 'Ahead',    bg: '#E3FCEF', color: '#006644' },
+  'on-track': { label: 'On track', bg: '#DEEBFF', color: '#0747A6' },
+  'at-risk':  { label: 'At risk',  bg: '#FFFAE6', color: '#974F0C' },
+  behind:   { label: 'Behind',   bg: '#FFEBE6', color: '#BF2600' },
+};
 
 // ── Projects fetch ────────────────────────────────────────────────────────────
 
@@ -337,6 +371,7 @@ function UserCard({ user, color, month, year }: { user: DashboardUserRow; color:
   const [expanded, setExpanded] = useState(false);
   const progress = Math.min((user.totalSeconds / user.targetSeconds) * 100, 100);
   const overTarget = user.totalSeconds > user.targetSeconds;
+  const alertLevel = getAlertLevel(user.totalSeconds, user.targetSeconds, month, year);
 
   // Build heatmap days
   const monthStart = startOfMonth(new Date(year, month - 1, 1));
@@ -370,7 +405,23 @@ function UserCard({ user, color, month, year }: { user: DashboardUserRow; color:
             {user.displayName.slice(0, 2).toUpperCase()}
           </div>
           <div>
-            <div className="font-semibold">{user.displayName}</div>
+            <div className="font-semibold flex items-center gap-2">
+              {user.displayName}
+              {alertLevel && (
+                <span
+                  style={{
+                    fontSize: 11,
+                    fontWeight: 600,
+                    padding: '2px 7px',
+                    borderRadius: 10,
+                    background: ALERT_STYLES[alertLevel].bg,
+                    color: ALERT_STYLES[alertLevel].color,
+                  }}
+                >
+                  {ALERT_STYLES[alertLevel].label}
+                </span>
+              )}
+            </div>
             <div className="text-xs" style={{ color: token('color.text.subtlest') }}>
               {user.projectBreakdown.length} project{user.projectBreakdown.length !== 1 ? 's' : ''}
             </div>

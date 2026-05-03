@@ -29,6 +29,7 @@ import DropZoneOverlay from './DropZoneOverlay';
 import { useIssueDragDrop } from '@/hooks/useIssueDragDrop';
 import { toJiraDatetime } from '@/lib/date-utils';
 import Button from '@atlaskit/button/new';
+import type { WorklogTemplate } from '@/types/template';
 
 const SETTINGS_VERSION = 2;
 
@@ -383,6 +384,39 @@ export default function CalendarView({
     clearSelection: slotSelection.clearSelection,
     closeMenu: contextMenu.closeMenu,
     goToToday: nav.goToToday,
+    prevWeek: nav.goToPrev,
+    nextWeek: nav.goToNext,
+    openNewWorklog: useCallback(() => {
+      // Open issue picker for today at 9 AM with a 1-hour default
+      const today = new Date();
+      today.setHours(9, 0, 0, 0);
+      setIssuePickerState({ isOpen: true, startDate: today, timeSpentSeconds: 3600 });
+    }, []),
+    editSelected: useCallback(() => {
+      if (contextMenu.menuState.targetEvent) {
+        setEditingEvent(contextMenu.menuState.targetEvent.calendarEvent);
+        contextMenu.closeMenu();
+      }
+    }, [contextMenu]),
+    deleteSelected: useCallback(async () => {
+      const dayEvent = contextMenu.menuState.targetEvent;
+      if (!dayEvent) return;
+      const calEvent = dayEvent.calendarEvent;
+      try {
+        const res = await fetch(
+          `/api/worklogs?issueKey=${encodeURIComponent(calEvent.issueKey)}&worklogId=${encodeURIComponent(calEvent.id)}`,
+          { method: 'DELETE' },
+        );
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || `Failed (${res.status})`);
+        }
+        multiUserWorklogs.refetch();
+      } catch (err) {
+        showError(`Failed to delete worklog: ${(err as Error).message}`);
+      }
+      contextMenu.closeMenu();
+    }, [contextMenu, multiUserWorklogs, showError]),
   });
 
   // T017: Issue drag-to-assign hook
@@ -724,6 +758,30 @@ export default function CalendarView({
           recentIssueKeys={recentIssueKeys}
           isCollapsed={isSidebarCollapsed}
           onToggleCollapsed={() => setIsSidebarCollapsed(c => !c)}
+          onApplyTemplate={useCallback(async (template: WorklogTemplate) => {
+            const today = new Date();
+            today.setHours(9, 0, 0, 0);
+            const timeSpentSeconds = Math.round(template.defaultHours * 3600);
+            try {
+              const res = await fetch('/api/worklogs', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  issueKey: template.issueKey,
+                  started: toJiraDatetime(today),
+                  timeSpentSeconds,
+                }),
+              });
+              if (!res.ok) {
+                const data = await res.json().catch(() => ({}));
+                throw new Error(data.error || `Failed (${res.status})`);
+              }
+              addRecentIssue(template.issueKey);
+              multiUserWorklogs.refetch();
+            } catch (err) {
+              showError(`Failed to log time from template: ${(err as Error).message}`);
+            }
+          }, [addRecentIssue, multiUserWorklogs, showError])}
         />
       </div>
 

@@ -7,13 +7,18 @@ import ChevronLeftIcon from '@atlaskit/icon/core/chevron-left';
 import ChevronRightIcon from '@atlaskit/icon/core/chevron-right';
 import Textfield from '@atlaskit/textfield';
 import type { JiraIssue } from '@/src/types/jira';
+import type { WorklogTemplate } from '@/types/template';
 import IssueSidebarItem from './IssueSidebarItem';
+import WorklogTemplatesPanel from './WorklogTemplatesPanel';
+
+type SidebarTab = 'issues' | 'templates';
 
 interface IssueSidebarProps {
   issues: JiraIssue[];
   recentIssueKeys: string[];
   isCollapsed: boolean;
   onToggleCollapsed: () => void;
+  onApplyTemplate?: (template: WorklogTemplate) => void;
 }
 
 export default function IssueSidebar({
@@ -21,7 +26,9 @@ export default function IssueSidebar({
   recentIssueKeys,
   isCollapsed,
   onToggleCollapsed,
+  onApplyTemplate,
 }: IssueSidebarProps) {
+  const [activeTab, setActiveTab] = useState<SidebarTab>('issues');
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
@@ -92,7 +99,23 @@ export default function IssueSidebar({
         borderBottom: `1px solid ${token('color.border')}`,
         backgroundColor: token('color.background.neutral'),
       }}>
-        <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: token('color.text') }}>Issues</span>
+        <div className="flex gap-1">
+          {(['issues', 'templates'] as SidebarTab[]).map(tab => (
+            <button
+              key={tab}
+              onClick={() => setActiveTab(tab)}
+              className="text-xs font-semibold uppercase tracking-wider px-2 py-0.5 rounded"
+              style={{
+                color: activeTab === tab ? token('color.text.selected') : token('color.text.subtle'),
+                backgroundColor: activeTab === tab ? token('color.background.selected') : 'transparent',
+                border: 'none',
+                cursor: 'pointer',
+              }}
+            >
+              {tab === 'issues' ? 'Issues' : 'Templates'}
+            </button>
+          ))}
+        </div>
         <IconButton
           icon={ChevronRightIcon}
           label="Collapse sidebar"
@@ -102,69 +125,78 @@ export default function IssueSidebar({
         />
       </div>
 
-      {/* Search input */}
-      <div className="px-3 py-2" style={{ borderBottom: `1px solid ${token('color.border')}` }}>
-        <Textfield
-          value={searchTerm}
-          onChange={handleSearchChange}
-          placeholder="Search issues..."
-          isCompact
-        />
-      </div>
+      {/* Tab content */}
+      {activeTab === 'issues' ? (
+        <>
+          {/* Search input */}
+          <div className="px-3 py-2" style={{ borderBottom: `1px solid ${token('color.border')}` }}>
+            <Textfield
+              value={searchTerm}
+              onChange={handleSearchChange}
+              placeholder="Search issues..."
+              isCompact
+            />
+          </div>
 
-      {/* Scrollable issue list */}
-      <div className="flex-1 overflow-y-auto">
-        {/* Recently used section */}
-        {recentIssues.length > 0 && (
-          <>
-            <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider" style={{
-              backgroundColor: token('color.background.warning'),
-              color: token('color.text.warning'),
-              borderBottom: `1px solid ${token('color.border.warning')}`,
-            }}>
-              Recently Used
-            </div>
-            {recentIssues.map((issue) => (
-              <IssueSidebarItem key={`recent-${issue.key}`} issue={issue} isRecentlyUsed />
-            ))}
-          </>
-        )}
-
-        {/* All issues section */}
-        {otherIssues.length > 0 && (
-          <>
+          {/* Scrollable issue list */}
+          <div className="flex-1 overflow-y-auto">
+            {/* Recently used section */}
             {recentIssues.length > 0 && (
-              <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider" style={{
-                backgroundColor: token('color.background.neutral'),
-                color: token('color.text.subtlest'),
-                borderBottom: `1px solid ${token('color.border')}`,
-              }}>
-                All Issues
+              <>
+                <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider" style={{
+                  backgroundColor: token('color.background.warning'),
+                  color: token('color.text.warning'),
+                  borderBottom: `1px solid ${token('color.border.warning')}`,
+                }}>
+                  Recently Used
+                </div>
+                {recentIssues.map((issue) => (
+                  <IssueSidebarItem key={`recent-${issue.key}`} issue={issue} isRecentlyUsed />
+                ))}
+              </>
+            )}
+
+            {/* All issues section */}
+            {otherIssues.length > 0 && (
+              <>
+                {recentIssues.length > 0 && (
+                  <div className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider" style={{
+                    backgroundColor: token('color.background.neutral'),
+                    color: token('color.text.subtlest'),
+                    borderBottom: `1px solid ${token('color.border')}`,
+                  }}>
+                    All Issues
+                  </div>
+                )}
+                {otherIssues.map((issue) => (
+                  <IssueSidebarItem key={issue.key} issue={issue} />
+                ))}
+              </>
+            )}
+
+            {/* Empty state */}
+            {filteredIssues.length === 0 && (
+              <div className="px-3 py-8 text-center text-xs" style={{ color: token('color.text.disabled') }}>
+                {debouncedSearch.trim() ? 'No matching issues' : 'No issues loaded'}
               </div>
             )}
-            {otherIssues.map((issue) => (
-              <IssueSidebarItem key={issue.key} issue={issue} />
-            ))}
-          </>
-        )}
-
-        {/* Empty state */}
-        {filteredIssues.length === 0 && (
-          <div className="px-3 py-8 text-center text-xs" style={{ color: token('color.text.disabled') }}>
-            {debouncedSearch.trim() ? 'No matching issues' : 'No issues loaded'}
           </div>
-        )}
-      </div>
 
-      {/* Footer with drag hint */}
-      <div className="px-3 py-2" style={{
-        borderTop: `1px solid ${token('color.border')}`,
-        backgroundColor: token('color.background.neutral'),
-      }}>
-        <p className="text-[10px] text-center" style={{ color: token('color.text.disabled') }}>
-          Drag an issue onto the calendar to log time
-        </p>
-      </div>
+          {/* Footer with drag hint */}
+          <div className="px-3 py-2" style={{
+            borderTop: `1px solid ${token('color.border')}`,
+            backgroundColor: token('color.background.neutral'),
+          }}>
+            <p className="text-[10px] text-center" style={{ color: token('color.text.disabled') }}>
+              Drag an issue onto the calendar to log time
+            </p>
+          </div>
+        </>
+      ) : (
+        <WorklogTemplatesPanel
+          onApplyTemplate={onApplyTemplate ?? (() => {})}
+        />
+      )}
     </div>
   );
 }

@@ -2,6 +2,8 @@ import type { Metadata } from 'next';
 import { token } from '@atlaskit/tokens';
 import '@atlaskit/css-reset';
 import Providers from './providers';
+import ErrorBoundary from '@/components/ErrorBoundary';
+import CredentialsCheck from '@/components/CredentialsCheck';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -24,9 +26,12 @@ export default function RootLayout({
         }}
       >
         <Providers>
-          <main className="min-h-screen">
-            {children}
-          </main>
+          <ErrorBoundary>
+            <CredentialsCheck />
+            <main className="min-h-screen">
+              {children}
+            </main>
+          </ErrorBoundary>
         </Providers>
       </body>
     </html>
