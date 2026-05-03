@@ -47,7 +47,7 @@ interface AppHeaderProps {
   onViewChange: (view: ViewMode) => void;
   projects: JiraProject[];
   selectedProject: JiraProject | null;
-  onSelectProject: (project: JiraProject) => void;
+  onSelectProject: (project: JiraProject | null) => void;
   isLoadingProjects: boolean;
   showProjectSelector: boolean;
 }

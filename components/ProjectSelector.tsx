@@ -8,9 +8,11 @@ import type { JiraProject } from '@/src/types/jira';
 interface ProjectSelectorProps {
   projects: JiraProject[];
   selectedProject: JiraProject | null;
-  onSelect: (project: JiraProject) => void;
+  onSelect: (project: JiraProject | null) => void;
   isLoading?: boolean;
 }
+
+const ALL_PROJECTS_OPTION = { label: 'All Projects', value: '__all__' };
 
 export default function ProjectSelector({
   projects,
@@ -33,12 +35,17 @@ export default function ProjectSelector({
     );
   }
 
-  const options = projects.map((p) => ({
+  const projectOptions = projects.map((p) => ({
     label: `${p.name} (${p.key})`,
     value: p.key,
   }));
 
-  const selectedOption = options.find((o) => o.value === selectedProject?.key) ?? null;
+  const options = [ALL_PROJECTS_OPTION, ...projectOptions];
+
+  const selectedOption =
+    selectedProject
+      ? options.find((o) => o.value === selectedProject.key) ?? ALL_PROJECTS_OPTION
+      : ALL_PROJECTS_OPTION;
 
   return (
     <div style={{ minWidth: 200 }}>
@@ -46,7 +53,9 @@ export default function ProjectSelector({
         options={options}
         value={selectedOption}
         onChange={(option: { label: string; value: string } | null) => {
-          if (option) {
+          if (!option || option.value === '__all__') {
+            onSelect(null);
+          } else {
             const project = projects.find((p) => p.key === option.value);
             if (project) onSelect(project);
           }

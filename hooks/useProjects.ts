@@ -17,14 +17,10 @@ export function useProjects() {
   const { data: projects = [], isLoading, error, refetch } = useQuery({
     queryKey: ['projects'],
     queryFn: fetchProjects,
-    staleTime: 5 * 60 * 1000, // 5 minutes — projects rarely change
+    staleTime: 5 * 60 * 1000,
   });
 
-  // Auto-select first project when data arrives and nothing is selected
-  if (!selectedProject && projects.length > 0) {
-    // Use setTimeout to avoid setState during render
-    setTimeout(() => setSelectedProject(projects[0]), 0);
-  }
+  // No auto-selection — null means "All Projects"
 
   return {
     projects,
