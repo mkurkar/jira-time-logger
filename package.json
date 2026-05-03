@@ -27,12 +27,16 @@
     "@atlaskit/textfield": "^8.3.2",
     "@atlaskit/theme": "^23.1.0",
     "@atlaskit/tokens": "^13.0.0",
+    "@react-pdf/renderer": "^4.5.1",
+    "@tanstack/query-persist-client-core": "^5.100.9",
+    "@tanstack/query-sync-storage-persister": "^5.100.9",
     "@tanstack/react-query": "^5.96.2",
     "date-fns": "^3",
     "dotenv": "^16.4.7",
     "next": "^16",
     "react": "^19",
-    "react-dom": "^19"
+    "react-dom": "^19",
+    "recharts": "^3.8.1"
   },
   "devDependencies": {
     "@types/jest": "^29.5.14",
